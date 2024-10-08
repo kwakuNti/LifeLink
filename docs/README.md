@@ -41,19 +41,19 @@ To set up the LifeLink project locally, follow these steps:
    cd lifelink
 
 3. Set up the database:
-Import the SQL file located in the db/ folder to your MySQL database.
-Configure your database connection:
+   Import the SQL file located in the db/ folder to your MySQL database.
+   Configure your database connection:
 
-Update the database credentials in the config/database.php file.
-Start a local server (e.g., XAMPP, WAMP) and place the project directory in the server's root folder.
+   Update the database credentials in the config/database.php file.
+   Start a local server (e.g., XAMPP, WAMP) and place the project directory in the server's root folder.
 
 4. Access the application:
-Open your web browser and navigate to http://localhost/lifelink.
+   Open your web browser and navigate to http://localhost/lifelink.
 
 5. Usage
-Register: Create an account as a donor or recipient.
-Match: After registering, the application will guide users through the matching process based on entered criteria.
-View Matches: Users can view their matching results securely through their dashboard.
+   Register: Create an account as a donor or recipient.
+   Match: After registering, the application will guide users through the matching process based on entered criteria.
+   View Matches: Users can view their matching results securely through their dashboard.
 
 6. Contributing
 Contributions are welcome! If you would like to contribute to the LifeLink project, please follow these steps:
