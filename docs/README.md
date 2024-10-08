@@ -37,11 +37,10 @@ To set up the LifeLink project locally, follow these steps:
    git clone https://github.com/kwakuNti/lifelink.git
 
 2. Navigate to the project directory:
-```bash
-cd lifelink
+   ```bash
+   cd lifelink
 
 3. Set up the database:
-
 Import the SQL file located in the db/ folder to your MySQL database.
 Configure your database connection:
 
