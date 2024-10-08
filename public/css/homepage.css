@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto Mono', monospace; /* Set Roboto Mono as the default font */
+}
+
+body {
+    background-color: #f4f4f4;
+}
+
+
+/* Header CSS Code */
+.hero-section {
+    position: relative;
+    background-image: url('../../assets/images/gettyimages-2075543398-2048x2048.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    color: white;
+    text-align: center;
+}
+
+nav {
+    position: absolute;
+    top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+nav .logo img {
+    width: 300px; /* Adjust the logo size as needed */
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Darkens the image */
+    z-index: 0; /* Keeps the overlay behind the text */
+}
+
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    margin-top: 16%; /* Adjust to position the text lower or higher */
+    max-width: 700px; /* Limit the width of the content */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    line-height: 1.2; /* Improved line height for better readability */
+}
+
+.hero-content p {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.hero-buttons {
+    position: absolute;
+    bottom: 50px;
+    display: flex;
+    gap: 20px;
+}
+
+.btn {
+    padding: 15px 30px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.act-now {
+    background-color: #007bff;
+    color: white;
+}
+
+.act-now:hover {
+    background-color: #0056b3;
+}
+
+.learn-more {
+    background-color: #ffffff;
+    color: #007bff;
+}
+
+.learn-more:hover {
+    background-color: #f0f0f0;
+}
+
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .hero-content h1 {
+        font-size: 3rem; /* Reduce font size for medium screens */
+    }
+
+    .hero-content p {
+        font-size: 1.25rem; /* Reduce font size for medium screens */
+    }
+
+    nav .logo img {
+        width: 250px; /* Adjust logo size */
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2.5rem; /* Further reduce font size for smaller screens */
+    }
+
+    .hero-content p {
+        font-size: 1.1rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 10px; /* Stack buttons on smaller screens */
+    }
+
+    .btn {
+        width: 100%; /* Buttons take full width on small screens */
+    }
+
+    nav .logo img {
+        width: 200px; /* Adjust logo size */
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2rem; /* Further reduce font size for extra small screens */
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+
+    .hero-buttons {
+        bottom: 30px; /* Adjust button position for smaller screens */
+    }
+
+    nav .logo img {
+        width: 150px; /* Adjust logo size */
+    }
+}
+
+
+/*end of header css code*/
+
+
+/* mid- section CSS Code */
+.mid-section {
+    padding: 150px 0;
+    text-align: center;
+    max-height: 300px;
+}
+
+.mid-section h1 {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+
+/* Blinking cursor effect */
+#typewriter {
+    font-size: 3.5rem;
+    font-weight: bold;
+    border-right: 2px solid;
+    white-space: nowrap;
+    overflow: hidden;
+    width: fit-content;
+    margin: 0 auto;
+    animation: blink-cursor 0.75s step-end infinite;
+}
+
+@keyframes blink-cursor {
+    from {
+        border-right-color: rgba(255, 255, 255, 1);
+    }
+    to {
+        border-right-color: transparent;
+    }
+}
