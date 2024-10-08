@@ -1,0 +1,66 @@
+LifeLink/
+│
+├── index.php                # Main landing page for LifeLink
+│
+├── actions/                 # PHP scripts for various actions (e.g., form submissions)
+│   ├── donor-register.php    # Handle donor registration logic
+│   ├── recipient-register.php # Handle recipient registration logic
+│   ├── match-handler.php     # Logic for matching donors and recipients
+│   ├── auth/                # Authentication scripts
+│   │   ├── login.php
+│   │   ├── logout.php
+│   │   └── register.php
+│   └── blockchain/          # Blockchain interaction scripts
+│       ├── add-record.php    # Add match record to the blockchain
+│       └── view-record.php   # Retrieve blockchain data
+│
+├── assets/                  # Static assets like images, fonts, etc.
+│   ├── images/
+│   │   ├── logo.png
+│   │   └── background.jpg
+│   ├── fonts/
+│   └── icons/
+│
+├── config/                  # Configuration files
+│   ├── database.php         # Database connection settings
+│   ├── settings.php         # General settings for the application
+│   └── blockchain.php       # Blockchain configuration (e.g., API keys)
+│
+├── db/                      # Database-related files
+│   ├── schema.sql           # SQL file for creating database tables
+│   └── queries.sql          # Sample queries for interacting with the DB
+│
+├── includes/                # Reusable PHP components (header, footer, etc.)
+│   ├── header.php           # Header template
+│   ├── footer.php           # Footer template
+│   └── functions.php        # Common functions used across the site
+│
+├── public/                  # Publicly accessible files (for front-end)
+│   ├── css/                 # Stylesheets
+│   │   ├── main.css         # Main CSS file
+│   │   ├── forms.css        # Specific CSS for forms
+│   │   └── media-queries.css # Media queries for responsive design
+│   ├── js/                  # JavaScript files
+│   │   ├── main.js          # Main functionality (validation, form logic)
+│   │   ├── blockchain.js    # Logic for blockchain interaction
+│   │   ├── machine-learning.js # Logic for integrating ML model
+│   │   └── form-validation.js # JavaScript form validation
+│   └── uploads/             # User uploads (e.g., documents, images)
+│
+├── templates/               # Template files for pages
+│   ├── donor-template.php    # Template for donor-related pages
+│   ├── recipient-template.php # Template for recipient-related pages
+│   └── match-template.php     # Template for displaying matches
+│
+├── model/                   # Machine learning model and related files
+│   ├── model.json           # Trained machine learning model (for matching)
+│   └── weights.bin          # Model weights (if using a library like TensorFlow.js)
+│
+├── blockchain/              # Blockchain-related files
+│   ├── contract.sol         # Smart contract (e.g., Solidity for Ethereum)
+│   ├── migrations/          # Deployment scripts for blockchain (if needed)
+│   └── test/                # Test files for blockchain logic
+│
+└── docs/                    # Documentation for the project
+    ├── README.md            # Project overview and instructions
+    └── API.md               # API documentation for integrating blockchain or model
