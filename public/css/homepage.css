@@ -4,7 +4,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Roboto Mono', monospace; /* Set Roboto Mono as the default font */
+    font-family: 'Roboto Mono', monospace; 
 }
 
 body {
@@ -28,14 +28,18 @@ body {
 
 nav {
     position: absolute;
-    top: 20px;
+    top: 10px;
+    right: 33%;
     display: flex;
     justify-content: center;
     width: 100%;
 }
 
+
+
 nav .logo img {
     width: 300px; /* Adjust the logo size as needed */
+   
     
 }
 
@@ -166,9 +170,12 @@ nav .logo img {
 /*end of header css code*/
 
 
+/************************************************************************************/
+
 /* mid- section CSS Code */
+/* mid-section CSS Code */
 .mid-section {
-    padding: 150px 0;
+    padding: 150px 20px; /* Add horizontal padding for smaller screens */
     text-align: center;
     max-height: 300px;
 }
@@ -179,18 +186,19 @@ nav .logo img {
     margin-bottom: 1rem;
 }
 
-
 /* Blinking cursor effect */
 #typewriter {
     font-size: 3.5rem;
     font-weight: bold;
     border-right: 2px solid;
-    white-space: nowrap;
-    overflow: hidden;
-    width: fit-content;
-    margin: 0 auto;
+    white-space: normal; /* Allow wrapping */
+    overflow: hidden; /* Prevent overflow */
+    width: 100%; /* Ensure it takes full width */
+    max-width: 800px; /* Optional: limit the maximum width */
+    margin: 0 auto; /* Center the element */
     animation: blink-cursor 0.75s step-end infinite;
 }
+
 
 @keyframes blink-cursor {
     from {
@@ -199,4 +207,86 @@ nav .logo img {
     to {
         border-right-color: transparent;
     }
+}
+
+/* Responsive Design for Mid-Section */
+@media (max-width: 768px) {
+    .mid-section {
+        padding: 100px 10px; /* Reduce padding for smaller screens */
+        max-height: none; /* Allow it to grow as needed */
+    }
+
+    .mid-section h1 {
+        font-size: 2.5rem; /* Reduce font size for medium screens */
+    }
+
+    #typewriter {
+        font-size: 2.5rem; /* Reduce typewriter font size */
+    }
+}
+
+@media (max-width: 480px) {
+    .mid-section {
+        padding: 80px 5px; /* Further reduce padding for extra small screens */
+    }
+
+    .mid-section h1 {
+        font-size: 2rem; /* Further reduce font size */
+    }
+
+    #typewriter {
+        font-size: 2rem; /* Further reduce typewriter font size */
+    }
+}
+
+
+/*********************************************************************************************/
+
+/*services-seciton css code*/
+.services-section {
+    background-color: #111;
+    padding: 80px 0;
+    text-align: center;
+    color: white;
+}
+
+.services-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+}
+
+.services-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.service {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.service:hover {
+    transform: translateY(-10px);
+}
+
+.service img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.service h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.service p {
+    font-size: 1rem;
+    line-height: 1.5;
 }
