@@ -24,7 +24,7 @@
                 <p>Empower Africa's future by partnering with us today. Your support is vital in creating lasting community transformation.</p>
             </div>
             <div class="hero-buttons">
-                <a href="#" class="btn act-now">Act Now</a>
+                <a href="login" class="btn act-now">Act Now</a>
                 <a href="#" class="btn learn-more">Learn More</a>
             </div>
         </div>

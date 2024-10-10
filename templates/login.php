@@ -13,10 +13,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-	<img class="wave" src="../assets/images/wave.png">
 	<div class="container">
 		<div class="img">
-			<img src="../assets/images/bg.svg">
+			<img src="../assets/images/login-removebg-preview.png">
 		</div>
 		<div class="login-content">
 			<form action="index.html">

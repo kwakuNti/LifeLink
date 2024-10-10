@@ -47,7 +47,7 @@ body{
 }
 
 form{
-	width: 360px;
+	width: 460px;
 }
 
 .login-content img{
@@ -106,7 +106,7 @@ form{
 	bottom: -2px;
 	width: 0%;
 	height: 2px;
-	background-color: #38d39f;
+	background-color: #111;
 	transition: .4s;
 }
 
@@ -128,7 +128,7 @@ form{
 }
 
 .input-div.focus > .i > i{
-	color: #38d39f;
+	color: #111;
 }
 
 .input-div > div > input{
@@ -142,8 +142,8 @@ form{
 	background: none;
 	padding: 0.5rem 0.7rem;
 	font-size: 1.2rem;
-	color: #555;
-	font-family: 'poppins', sans-serif;
+	color: #111;
+    font-family: 'Roboto Mono', monospace; 
 }
 
 .input-div.pass{
@@ -154,13 +154,13 @@ a{
 	display: block;
 	text-align: right;
 	text-decoration: none;
-	color: #999;
+	color: #111;
 	font-size: 0.9rem;
 	transition: .3s;
 }
 
 a:hover{
-	color: #38d39f;
+	color: #531818;
 }
 
 .btn{
@@ -170,11 +170,11 @@ a:hover{
 	border-radius: 25px;
 	outline: none;
 	border: none;
-	background-image: linear-gradient(to right, #32be8f, #38d39f, #32be8f);
+	background-color: #111;
 	background-size: 200%;
 	font-size: 1.2rem;
 	color: #fff;
-	font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto Mono', monospace; 
 	text-transform: uppercase;
 	margin: 1rem 0;
 	cursor: pointer;
