@@ -10,6 +10,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../favicon_io/site.webmanifest">
     <link rel="stylesheet" href="../public/css/homepage.css">
+    <link rel="stylesheet" href="../public/css/snackbar.css">
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
@@ -18,28 +20,40 @@
 			<img src="../assets/images/login-removebg-preview.png">
 		</div>
 		<div class="login-content">
-			<form action="index.html">
+			<form onsubmit="return validateForm()">
 				<img src="../assets/images/avatar-svgrepo-com.svg">
 				<h2 class="title">Welcome</h2>
+				
+				<div id="snackbar"></div> <!-- Snackbar for validation messages -->
+				
+				<!-- Email input with HTML5 email validation -->
            		<div class="input-div one">
            		   <div class="i">
            		   		<i class="fas fa-user"></i>
            		   </div>
            		   <div class="div">
            		   		<h5>Email</h5>
-           		   		<input type="text" class="input">
+           		   		<input type="email" class="input" id="email" required>
            		   </div>
            		</div>
+
+				<!-- Password input with regex validation -->
            		<div class="input-div pass">
            		   <div class="i"> 
            		    	<i class="fas fa-lock"></i>
            		   </div>
            		   <div class="div">
            		    	<h5>Password</h5>
-           		    	<input type="password" class="input">
+           		    	<!-- Pattern for password validation:
+						   At least 8 characters, includes uppercase, lowercase, digit, special character, and a dot -->
+           		    	<input type="password" class="input" id="password" 
+						   pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+						   title="Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, one special character" 
+						   required>
             	   </div>
             	</div>
-            	<a href="#">Forgot Password?</a>
+
+				<a href="#">Forgot Password?</a>
                 <a href="sign-up">Sign up</a>
             	<input type="submit" class="btn" value="Login">
             </form>
