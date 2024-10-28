@@ -1,0 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto Mono', monospace; 
+}
+
+body {
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Transparent Navbar */
+nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 50px;
+    background-color: rgba(0, 0, 0, 0); /* Fully transparent */
+}
+
+
+nav .logo img {
+    width: 180px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+    list-style-type: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+    padding: 5px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: black;
+    border-bottom: 2px solid black;
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-content p {
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        padding: 10px 20px;
+    }
+
+    nav .logo img {
+        width: 140px;
+    }
+
+    nav .nav-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+
+    nav .logo img {
+        width: 120px;
+    }
+
+    nav .nav-links {
+        gap: 15px;
+        font-size: 1rem;
+    }
+
+    .service {
+        width: 100%;
+    }
+
+    .services-container {
+        flex-direction: column;
+    }
+}
+section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f4f4f4;
+    border-radius: 8px;
+}
+
+.intro h1 {
+    font-size: 1.8em;
+    color: #1a73e8;
+}
+
+.quote blockquote {
+    font-style: italic;
+    color: #555;
+    padding: 10px;
+    border-left: 4px solid #1a73e8;
+}
+
+.how-it-works h2, .stats h2, .success-stories h2 {
+    color: #1a73e8;
+}
+
+ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.success-stories {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 150px;
+    cursor: pointer;
+}
+
+.card img {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 20px;
+}

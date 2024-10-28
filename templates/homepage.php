@@ -33,16 +33,32 @@
     <h1 id="typewriter"></h1> <!-- Changed to have an id -->
 </div>
 <div class="services-section">
-    <h2>Our Services</h2>
+    <h2>Want to know?</h2>
     <div class="services-container">
+    <div class="service" onclick="showModal()">
+    <img src="../assets/images/school_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Educational Programs Icon">
+    <h3>Understand Donation</h3>
+    <p>Learn more about organ donations, including heart, kidney, liver, lungs, and pancreas transplants.</p>
+</div>
+
+<!-- Modal Structure -->
+<div id="donationModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Choose Organ to Learn About</h2>
+        <ul>
+            <li><a href="heart">Heart</a></li>
+            <li><a href="kidney">Kidney</a></li>
+            <li><a href="liver">Liver</a></li>
+            <li><a href="lungs">Lungs</a></li>
+            <li><a href="pancreas">Pancreas</a></li>
+        </ul>
+    </div>
+</div>
+
         <div class="service">
-            <img src="../assets/images/school_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Educational Programs Icon">
-            <h3>Educational Programs</h3>
-            <p>We offer educational programs to help children and adults improve their skills and knowledge.</p>
-        </div>
-        <div class="service">
-            <img src="../assets/images/communities_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Community Outreach Icon">
-            <h3>Community Outreach</h3>
+            <img src="../assets/images/live_help_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Community Outreach Icon">
+            <h3>How can you help</h3>
             <p>Join our community outreach events to support and uplift local families in need.</p>
         </div>
         <div class="service">
@@ -52,6 +68,59 @@
         </div>
     </div>
 </div>
+<!-- Footer Section -->
+<footer>
+    <div class="footer-container">
+        <!-- Logo and Copyright -->
+        <div class="footer-logo">
+            <img src="../assets/images/logo-removebg-preview.png" alt="Logo" class="logo-img">
+            <p>© 2024 LifeLink, Inc.<br>All rights reserved.</p>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="footer-column">
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Donate</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+        
+        <!-- Resources -->
+        <div class="footer-column">
+            <h4>Resources</h4>
+            <ul>
+                <li><a href="#">FAQs</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Events</a></li>
+                <li><a href="#">Partners</a></li>
+            </ul>
+        </div>
+        
+        <!-- Connect -->
+        <div class="footer-column">
+            <h4>Connect</h4>
+            <ul>
+                <li><a href="#">Facebook</a></li>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">LinkedIn</a></li>
+            </ul>
+        </div>
+    </div>
+</footer>
 </body>
+<script>
+    
+    function showModal() {
+            document.getElementById('donationModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('donationModal').style.display = 'none';
+        }
+</script>
 <script src="../public/js/homepage.js"></script>
 </html>

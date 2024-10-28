@@ -36,5 +36,7 @@
 
         // Start the typewriter effect
         typeWriter();
+
+        
     });
 
