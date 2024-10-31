@@ -112,7 +112,6 @@
 </footer>
 </body>
 <script>
-    
     function showModal() {
             document.getElementById('donationModal').style.display = 'flex';
         }
