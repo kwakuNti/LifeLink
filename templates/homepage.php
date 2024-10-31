@@ -55,7 +55,6 @@
         </ul>
     </div>
 </div>
-
         <div class="service">
             <img src="../assets/images/live_help_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Community Outreach Icon">
             <h3>How can you help</h3>
