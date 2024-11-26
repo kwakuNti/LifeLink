@@ -8,70 +8,82 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../favicon_io/site.webmanifest">
     <link rel="stylesheet" href="../public/css/navbar.css">
-    <title>Heart</title>
+    <title>Understanding Heart Donation</title>
+
 </head>
 <body>
-<header>
     <nav class="navbar">
         <div class="logo">
             <img src="../assets/images/logo-removebg-preview.png" alt="LifeLink Logo">
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="donate.html">Donate</a></li>
-            <li><a href="contact.html">Contact</a></li>
+            <li><a href="homepage">Home</a></li>
+            <li><a href="kidney">Kidney</a></li>
+            <li><a href="liver">Liver</a></li>
+            <li><a href="lungs">Lungs</a></li>
+            <li><a href="pancreas">Pancreas</a></li>
         </ul>
     </nav>
-</header>
-<section class="intro">
-        <h1>Why Register Your Decision to Be a Donor?</h1>
-        <p>By registering your decision to be an organ, eye, and tissue donor, you are helping to save lives and give hope to those currently waiting for lifesaving organ transplants. One donor can save and heal more than 75 lives.</p>
-    </section>
 
-    <section class="quote">
-        <blockquote>
-            “After his death, Cameron left us the first of many blessings – he had taken all appropriate steps to be an organ, eye, and tissue donor. His dad and I took comfort in knowing we were upholding his decision to give the gift of life to others.”<br><span>– Lori, donor mom</span>
-        </blockquote>
-    </section>
-
-    <section class="how-it-works">
-        <h2>How It Works</h2>
-        <p>You can register in the National Donate Life Registry. Any adult age 18 or older can register to be an organ, eye, and tissue donor. Donors aged 15-17 can register with parental consent.</p>
-        <ul>
-            <li>Opt in to donate for research</li>
-            <li>Update your donor profile</li>
-            <li>Specify any donation preferences</li>
-            <li>Print a document of gift for your records</li>
-        </ul>
-    </section>
-
-    <section class="stats">
-        <h2>Statistics</h2>
-        <p>Over 100,000 people are currently waiting for organ transplants in the U.S. alone. One donor can make a lasting impact on multiple lives.</p>
-    </section>
-
-    <section class="success-stories">
-        <h2>Success Stories</h2>
-        <div class="card" onclick="openModal('john')">
-            <img src="path/to/john.jpg" alt="John">
-            <p><strong>John</strong> – California</p>
-            <p>Kidney Transplant</p>
-        </div>
-        <div class="card" onclick="openModal('jane')">
-            <img src="path/to/jane.jpg" alt="Jane">
-            <p><strong>Jane</strong> – Texas</p>
-            <p>Liver Transplant</p>
-        </div>
-    </section>
-
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <p id="modal-text"></p>
-        </div>
+    <div class="hero-section">
+        <h1>Understanding Heart Donation</h1>
+        <p>Learn about the importance of heart donation and how you can make a difference</p>
     </div>
 
+    <div class="main-content">
+        <div class="info-card">
+            <h2>Why Register as a Heart Donor?</h2>
+            <p>Heart donation is one of the most precious gifts one can give. A single heart donation can save a life and give someone a second chance at living fully. By registering as a heart donor, you're offering hope to those waiting for a lifesaving transplant.</p>
+        </div>
 
+        <div class="quote-card">
+            <p>"After his death, Cameron left us the first of many blessings – he had taken all appropriate steps to be an organ donor. His dad and I took comfort in knowing we were upholding his decision to give the gift of life to others."</p>
+            <span>– Lori, donor mom</span>
+        </div>
+
+        <div class="info-card">
+            <h2>The Heart Donation Process</h2>
+            <p>The process of heart donation is carefully managed to ensure the best possible outcomes:</p>
+            <ul>
+                <li>Thorough medical evaluation</li>
+                <li>Careful matching with recipients</li>
+                <li>Coordinated surgical teams</li>
+                <li>Time-sensitive transportation</li>
+            </ul>
+        </div>
+
+        <div class="statistics">
+            <div class="stat-box">
+                <h3>3,500+</h3>
+                <p>People waiting for heart transplants</p>
+            </div>
+            <div class="stat-box">
+                <h3>75</h3>
+                <p>Lives can be impacted by one donor</p>
+            </div>
+            <div class="stat-box">
+                <h3>85%</h3>
+                <p>One-year survival rate</p>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h2>Success Stories</h2>
+            <div class="success-stories">
+                <div class="story-card">
+                    <img src="/api/placeholder/120/120" alt="John">
+                    <h3>John's Story</h3>
+                    <p>Received a heart transplant in 2020</p>
+                    <p>"Every heartbeat reminds me of the gift I've been given."</p>
+                </div>
+                <div class="story-card">
+                    <img src="/api/placeholder/120/120" alt="Jane">
+                    <h3>Jane's Story</h3>
+                    <p>Heart recipient since 2019</p>
+                    <p>"I can now watch my grandchildren grow up."</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
