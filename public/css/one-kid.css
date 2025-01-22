@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+
+body {
+    font-family: 'Roboto Mono', monospace; 
+    margin: 0;
+    padding: 0;
+    display: flex;
+    background-color: #f9f9f9;
+}
+
+.main-container {
+    display: flex;
+    width: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 20%;
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    height: 100vh;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 15px;
+}
+
+.sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.sidebar ul li a:hover {
+    text-decoration: underline;
+}
+
+/* Content */
+.content {
+    width: 80%;
+    padding: 20px;
+    overflow-y: scroll;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 28px;
+    color: #333;
+}
+
+header #searchBar {
+    padding: 10px;
+    width: 40%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Sections */
+section {
+    margin-bottom: 40px;
+}
+
+section h2 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+section p, blockquote {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+}
+
+blockquote {
+    font-style: italic;
+    border-left: 4px solid #007BFF;
+    padding-left: 15px;
+    margin-left: 10px;
+}
