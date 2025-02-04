@@ -53,7 +53,7 @@
             	   </div>
             	</div>
 
-				<a href="#">Forgot Password?</a>
+				<a href="forgot-password.php">Forgot Password?</a>
                 <a href="sign-up">Sign up</a>
             	<input type="submit" class="btn" value="Login">
             </form>
