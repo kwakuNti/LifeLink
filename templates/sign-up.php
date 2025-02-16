@@ -14,13 +14,13 @@
     <link rel="stylesheet" href="../public/css/homepage.css">
     <link rel="stylesheet" href="../public/css/snackbar.css">
 </head>
-<body>
+<body onload="checkForMessage()">
     <div class="container">
         <div class="img">
             <img src="../assets/images/login-removebg-preview.png" alt="Login Image">
         </div>
         <div class="login-content">
-            <form id="signupForm" action="signup_process.html" onsubmit="return validateForm()">
+            <form  action="../actions/signup.php" method="POST" onsubmit="return validateForm()">
                 <img src="../assets/images/avatar-svgrepo-com.svg" alt="Avatar">
                 <h2 class="title">Sign Up</h2>
 
@@ -55,7 +55,8 @@
                     </div>
                     <div class="div">
                         <h5>Email</h5>
-                        <input type="email" class="input" name="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Enter a valid email address." required>
+                        <input type="email" class="input" name="email"  
+       title="Enter a valid email address." required>
                     </div>
                 </div>
 
@@ -87,8 +88,27 @@
             </form>
         </div>
     </div>
+    <script type="text/javascript">
+        function checkForMessage() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('status') && params.has('message')) {
+                const message = params.get('message');
+                const status = params.get('status');
+                showSnackbar(message, status);
+            }
+        }
 
+        function showSnackbar(message, type) {
+            let snackbar = document.getElementById("snackbar");
+            snackbar.innerHTML = message;
+            snackbar.className = "show " + type;
+            setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+            }, 3000);
+        }
+    </script>
     <!-- JavaScript Validation -->
     <script type="text/javascript" src="../public/js/login.js"></script>
+
 </body>
 </html>

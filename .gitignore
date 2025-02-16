@@ -1,0 +1,19 @@
+# Ignore vendor dependencies
+/vendor/
+composer.lock
+
+# Ignore Google API Credentials
+/config/google-config.php
+
+# Ignore sensitive environment files
+.env
+
+# Ignore log files
+/logs/
+*.log
+
+# Ignore database backups
+/database-backups/
+
+# Ignore user uploads (optional)
+/uploads/

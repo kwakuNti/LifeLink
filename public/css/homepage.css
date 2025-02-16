@@ -83,6 +83,8 @@ nav .logo img {
     gap: 20px;
 }
 
+
+
 .btn {
     padding: 15px 30px;
     text-decoration: none;
@@ -90,6 +92,8 @@ nav .logo img {
     border-radius: 30px;
     transition: background-color 0.3s ease;
 }
+
+
 
 .act-now {
     background-color: #007bff;

@@ -59,7 +59,7 @@ function validateForm() {
 }
 
 
-window.onload = function() {
-    // You can also use this for other automatic alerts
-    showSnackbar("Welcome! Please fill out the form.");
-};
+// window.onload = function() {
+//     // You can also use this for other automatic alerts
+//     showSnackbar("Welcome! Please fill out the form.");
+// };

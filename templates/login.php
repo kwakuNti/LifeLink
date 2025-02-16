@@ -14,18 +14,26 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body>
+<body onload="checkForMessage()">
 	<div class="container">
 		<div class="img">
 			<img src="../assets/images/login-removebg-preview.png">
 		</div>
 		<div class="login-content">
-			<form onsubmit="return validateForm()">
+			<form action= "../actions/login.php" method="POST" onsubmit="return validateForm()">
 				<img src="../assets/images/avatar-svgrepo-com.svg">
 				<h2 class="title">Welcome</h2>
 				
 				<div id="snackbar"></div> <!-- Snackbar for validation messages -->
-				
+								<!-- Google Login Button -->
+
+
+								<a href="../actions/google-login.php" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+    <p style="text-decoration: underline; margin: 0; margin-right: 10px;">Or login with Google</p>	
+    <img src="../assets/images/google-icon.png" style="height: 30px;" alt="google-logo"/>
+</a>
+    
+
 				<!-- Email input with HTML5 email validation -->
            		<div class="input-div one">
            		   <div class="i">
@@ -33,7 +41,7 @@
            		   </div>
            		   <div class="div">
            		   		<h5>Email</h5>
-           		   		<input type="email" class="input" id="email" required>
+           		   		<input type="email" class="input" id="email" required name="email">
            		   </div>
            		</div>
 
@@ -49,16 +57,42 @@
            		    	<input type="password" class="input" id="password" 
 						   pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
 						   title="Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, one special character" 
-						   required>
+						   required name="password">
             	   </div>
             	</div>
+
+				    <!-- Remember Me Checkbox -->
+					<div class="checkbox">
+        <input type="checkbox" id="rememberMe" name="rememberMe">
+        <label for="rememberMe">Remember Me</label>
+    </div>
 
 				<a href="forgot-password.php">Forgot Password?</a>
                 <a href="sign-up">Sign up</a>
             	<input type="submit" class="btn" value="Login">
+
             </form>
         </div>
     </div>
+	<script type="text/javascript">
+        function checkForMessage() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('status') && params.has('message')) {
+                const message = params.get('message');
+                const status = params.get('status');
+                showSnackbar(message, status);
+            }
+        }
+
+        function showSnackbar(message, type) {
+            let snackbar = document.getElementById("snackbar");
+            snackbar.innerHTML = message;
+            snackbar.className = "show " + type;
+            setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+            }, 3000);
+        }
+    </script>
     <script type="text/javascript" src="../public/js/login.js"></script>
 </body>
 </html>
