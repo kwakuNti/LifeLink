@@ -11,6 +11,30 @@ body {
     background-color: #f4f4f4;
 }
 
+/* Smooth Scroll Effect */
+/* ✨ Fade-in Animation */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 🖱️ Hover Effect for Sections */
+.hover-effect {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Smooth Scroll Effect */
+html {
+    scroll-behavior: smooth;
+}
+
+
 
 /* Header CSS Code */
 .hero-section {
@@ -179,9 +203,9 @@ nav .logo img {
 /* mid- section CSS Code */
 /* mid-section CSS Code */
 .mid-section {
-    padding: 150px 20px; /* Add horizontal padding for smaller screens */
+    padding: 250px 20px; /* Add horizontal padding for smaller screens */
     text-align: center;
-    max-height: 300px;
+    max-height: 100%;
 }
 
 .mid-section h1 {
@@ -433,5 +457,84 @@ footer {
     
     .footer-column {
         padding: 20px 0;
+    }
+}
+
+
+
+/* Video Section */
+.video-section {
+    text-align: center;
+    padding: 50px;
+    background: #f9f9f9;
+}
+
+.video-container {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 450px;
+    border-radius: 10px;
+}
+
+/* Ghana Organ Donation Facts Section */
+.facts-section {
+    padding: 150px 20px;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.facts-container {
+    display: flex;
+    max-width: 900px;
+    align-items: center;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.facts-image {
+    width: 300px;
+    height: auto;
+    margin-right: 20px;
+}
+
+.facts-text {
+    max-width: 500px;
+}
+
+.facts-text h2 {
+    color: #660066;
+    font-size: 44px;
+}
+
+.facts-text p {
+    font-size: 22px;
+    margin: 10px 0;
+}
+
+.highlight {
+    font-weight: bold;
+    font-size: 22px;
+    color: #900C3F;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .facts-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .facts-image {
+        margin-bottom: 20px;
+    }
+
+    .video-container iframe {
+        height: 300px;
     }
 }

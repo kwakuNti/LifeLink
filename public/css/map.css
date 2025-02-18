@@ -1,0 +1,140 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.map-container {
+    max-width: 900px;
+    margin: 2px auto;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+}
+
+/* Center & Resize the Map */
+.ghana-map-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+svg {
+    width: 100%;
+    max-width: 680px; /* Increased size */
+    height: auto;
+}
+
+/* Ensure Regions Are Clickable */
+path {
+    fill: #cccccc; /* Default region color */
+    stroke: #000;
+    stroke-width: 1px;
+    cursor: pointer;
+    transition: fill 0.3s ease, transform 0.2s;
+    pointer-events: all; /* Ensure clickability */
+}
+
+/* Hover Effect */
+path:hover {
+    fill: #900C3F; /* Highlight on hover */
+    transform: scale(1.05); /* Slight zoom-in effect */
+}
+
+/* Selected Region */
+path.selected {
+    fill: #660066; /* Selected color */
+}
+
+/* Search Bar Styling */
+#location-search {
+    width: 80%;
+    max-width: 400px;
+    padding: 10px;
+    font-size: 16px;
+    margin-top: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Button Styling */
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #660066;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.3s, transform 0.2s;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0c9047;
+    transform: scale(1.05);
+}
+
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+/* Tooltip for Region Name */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    display: none;
+    pointer-events: none;
+}
+
+
+/* Ensure the Search Input & Buttons Look Better */
+#location-search, #manual-location {
+    width: 80%;
+    max-width: 400px;
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px auto;
+    display: block;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.location-refinement {
+    margin-top: 15px;
+}
+
+#city-select {
+    width: 85%;
+    max-width: 300px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #660066;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background 0.3s;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #900C3F;
+}

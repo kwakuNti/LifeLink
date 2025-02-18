@@ -32,6 +32,32 @@
     <div class="mid-section">
     <h1 id="typewriter"></h1> <!-- Changed to have an id -->
 </div>
+<!-- Video Section -->
+<div class="video-section">
+    <h2>Why Organ Donation Matters</h2>
+    <div class="video-container">
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/K4bS7YZjqhY" title="YouTube video player"
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+<!-- Ghana Organ Donation Facts Section -->
+<!-- Ghana Organ Donation Facts Section -->
+<div class="facts-section">
+    <div class="facts-container">
+        <img src="../assets/images/waving.png" alt="People Waiting" class="facts-image">
+        <div class="facts-text">
+            <h2>Organ Donation in Ghana</h2>
+            <p><span class="highlight counter" data-target="2500">0</span> Ghanaians are in need of organ transplants.</p>
+            <p><span class="highlight counter" data-target="10">0</span>% of patients receive a transplant annually.</p>
+            <p><span class="highlight counter" data-target="90">0</span>% of donations are live kidney transplants.</p>
+        </div>
+    </div>
+</div>
+
+
 <div class="services-section">
     <h2>Want to know?</h2>
     <div class="services-container">
