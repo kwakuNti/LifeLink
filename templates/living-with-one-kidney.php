@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../favicon_io/site.webmanifest">
     <title>One Kidney, Full Life: A Journey of Hope and Healing</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3b82f6;
-            --secondary-color: #10b981;
+            --primary-color: #1e3a8a; /* Deep Blue */
+            --secondary-color: #000; /* Black */
             --background-light: #f0f9ff;
             --text-dark: #1f2937;
         }
@@ -27,7 +31,6 @@
         }
 
         .container {
-            max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
             display: grid;

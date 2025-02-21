@@ -6,6 +6,10 @@
     box-sizing: border-box;
     font-family: 'Roboto Mono', monospace; 
 }
+html {
+    scroll-behavior: smooth;
+}
+
 
 body {
     background-color: #f4f4f4;

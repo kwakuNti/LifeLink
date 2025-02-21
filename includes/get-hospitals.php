@@ -14,7 +14,7 @@ $manualLocation = $_GET['location'] ?? '';
 
 // Check if at least one location parameter is provided
 if (!$region && !$city && !$manualLocation) {
-    echo json_encode(["error" => "No location provided"]);
+    echo json_encode(["error" => "No location provided"]); 
     exit();
 }
 

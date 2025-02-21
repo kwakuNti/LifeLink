@@ -11,25 +11,20 @@
     <link rel="stylesheet" href="../public/css/selector.css">
 </head>
 <body>
-    <div class="container">
-        <div class="option donor" onclick="selectRole('donor')">
-            <div class="overlay"></div>
-            <h2>I Want to Donate</h2>
-            <p>Give the gift of life. Become a donor today.</p>
-        </div>
 
-        <div class="option recipient" onclick="selectRole('recipient')">
-            <div class="overlay"></div>
-            <h2>I Need a Transplant</h2>
-            <p>Find hope and a second chance at life.</p>
-        </div>
+  <!-- Splash Screen -->
+  <div id="splash" class="screen visible">
+    <h1 class="fade-in">LifeLink</h1>
+  </div>
+
+  <!-- Selector Screen -->
+  <div id="selector" class="screen hidden">
+    <h2 id="typewriter"></h2>
+    <div class="options">
+      <a href="donor.html" class="option">I Want to Donate</a>
+      <a href="recipient.html" class="option">I Need a Transplant</a>
     </div>
-
-    <!-- Floating Organ Animations -->
-    <img src="../assets/images/heart.png" class="floating organ heart">
-    <img src="../assets/images/kidney.png" class="floating organ kidney">
-    <img src="../assets/images/liver.png" class="floating organ liver">
-
+  </div>
     <script src="../public/js/selector.js"></script>
 </body>
 </html>

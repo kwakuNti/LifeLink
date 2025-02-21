@@ -25,8 +25,8 @@
             </div>
             <div class="hero-buttons">
                 <a href="sign-up" class="btn act-now">Act Now</a>
-                <a href="#" class="btn learn-more">Learn More</a>
-            </div>
+                <a href="#services-section" class="btn learn-more">Learn More</a>
+                </div>
         </div>
     </header>
     <div class="mid-section">
@@ -58,7 +58,7 @@
 </div>
 
 
-<div class="services-section">
+<div id="services-section" class="services-section">
     <h2>Want to know?</h2>
     <div class="services-container">
     <div class="service" onclick="showModal()">
@@ -81,16 +81,20 @@
         </ul>
     </div>
 </div>
+<a href="blog" style="text-decoration: none; color: white;" >
         <div class="service">
             <img src="../assets/images/live_help_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Community Outreach Icon">
             <h3>How can you help</h3>
             <p>Join our community outreach events to support and uplift local families in need.</p>
         </div>
+    </a>
+    <a href="#" style="text-decoration: none; color: white;" >
         <div class="service">
             <img src="../assets/images/health_and_safety_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz24.png" alt="Health Workshops Icon">
             <h3>Health Workshops</h3>
             <p>Attend our health workshops to learn about wellness, nutrition, and maintaining a healthy lifestyle.</p>
         </div>
+        </a>
     </div>
 </div>
 <!-- Footer Section -->
