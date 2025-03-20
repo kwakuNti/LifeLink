@@ -1,4 +1,5 @@
 <?php
+use Google_Service_Oauth2;
 session_start();
 require '../config/google-config.php';
 include '../config/connection.php';
@@ -43,7 +44,7 @@ if (isset($_GET['code'])) {
     $_SESSION['name'] = $name;
     $_SESSION['email'] = $email;
 
-    header("Location: ../templates/dashboard.php");
+    header("Location: ../templates/selector-page.php");
     exit();
 } else {
     header("Location: ../templates/login.php?status=error&message=Google login failed!");

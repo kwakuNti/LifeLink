@@ -43,7 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Generate OTP (6-digit)
     $otp = strval(rand(100000, 999999));
-
     // Hash password
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 

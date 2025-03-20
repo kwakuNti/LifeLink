@@ -1,0 +1,1 @@
+this.style.fill = "#1e3a8a"; // Highlight color

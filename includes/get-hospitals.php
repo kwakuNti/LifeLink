@@ -24,7 +24,9 @@ $userLng = null;
 
 // If manual location is provided, convert it to lat/lng using Google Geocoding API
 if (!empty($manualLocation)) {
-    $geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($manualLocation)."AIzaSyDlzRfWUaPWKVws7I8Y7iTqk5_kYl3ZYm4";
+    $geocodeUrl = "https://maps.googleapis.com/maps/api/geocode/json?address=" 
+                  . urlencode($manualLocation) 
+                  . "&key=AIzaSyDlzRfWUaPWKVws7I8Y7iTqk5_kYl3ZYm4";
     $geoResponse = file_get_contents($geocodeUrl);
     $geoData = json_decode($geoResponse, true);
 
@@ -45,7 +47,6 @@ if (!$userLat || !$userLng) {
         echo json_encode(["error" => "Database query failed: " . $conn->error]);
         exit();
     }
-
     $stmtLocation->bind_param("ss", $region, $city);
     $stmtLocation->execute();
     $resultLocation = $stmtLocation->get_result();
@@ -59,12 +60,14 @@ if (!$userLat || !$userLng) {
     }
 }
 
-// Fetch hospitals and calculate distance using Haversine formula
+// Fetch hospitals and calculate distance using the Haversine formula
 $sql = "
     SELECT id, name, region, city, latitude, longitude, organ_specialty,
-    (6371 * ACOS(COS(RADIANS(?)) * COS(RADIANS(latitude)) 
-    * COS(RADIANS(longitude) - RADIANS(?)) + SIN(RADIANS(?)) 
-    * SIN(RADIANS(latitude)))) AS distance
+    (6371 * ACOS(
+      COS(RADIANS(?)) * COS(RADIANS(latitude)) *
+      COS(RADIANS(longitude) - RADIANS(?)) +
+      SIN(RADIANS(?)) * SIN(RADIANS(latitude))
+    )) AS distance
     FROM hospitals
     ORDER BY distance ASC
     LIMIT 3;
@@ -75,7 +78,6 @@ if (!$stmt) {
     echo json_encode(["error" => "Database query failed: " . $conn->error]);
     exit();
 }
-
 $stmt->bind_param("ddd", $userLat, $userLng, $userLat);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -84,10 +86,15 @@ $hospitals = [];
 while ($row = $result->fetch_assoc()) {
     $hospitals[] = $row;
 }
-
 $stmt->close();
 $conn->close();
 
-echo json_encode($hospitals);
+// Return an object containing both user_location and hospitals
+$response = [
+    "user_location" => ["latitude" => $userLat, "longitude" => $userLng],
+    "hospitals" => $hospitals
+];
+
+echo json_encode($response);
 exit();
 ?>

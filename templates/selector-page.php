@@ -9,22 +9,42 @@
     <link rel="manifest" href="../favicon_io/site.webmanifest">
     <title>Organ Donation | Select Role</title>
     <link rel="stylesheet" href="../public/css/selector.css">
+    <link rel="stylesheet" href="../public/css/snackbar.css">
 </head>
 <body>
-
   <!-- Splash Screen -->
   <div id="splash" class="screen visible">
     <h1 class="fade-in">LifeLink</h1>
   </div>
 
-  <!-- Selector Screen -->
-  <div id="selector" class="screen hidden">
-    <h2 id="typewriter"></h2>
-    <div class="options">
-      <a href="donor.html" class="option">I Want to Donate</a>
-      <a href="recipient.html" class="option">I Need a Transplant</a>
-    </div>
+<!-- Selector Screen -->
+<div id="selector" class="screen hidden">
+  <h2 id="typewriter"></h2>
+  <div class="options">
+    <!-- The 'role' parameter in the query string indicates the chosen role -->
+    <a href="../actions/selector-action.php?role=donor" class="option">I Want to Donate</a>
+    <a href="../actions/selector-action.php?role=recipient" class="option">I Need a Transplant</a>
   </div>
+</div>
+<script type="text/javascript">
+        function checkForMessage() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('status') && params.has('message')) {
+                const message = params.get('message');
+                const status = params.get('status');
+                showSnackbar(message, status);
+            }
+        }
+
+        function showSnackbar(message, type) {
+            let snackbar = document.getElementById("snackbar");
+            snackbar.innerHTML = message;
+            snackbar.className = "show " + type;
+            setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+            }, 3000);
+        }
+    </script>
     <script src="../public/js/selector.js"></script>
 </body>
 </html>

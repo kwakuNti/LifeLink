@@ -1,17 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
     const regions = document.querySelectorAll("path"); // Select all path elements inside SVG
-
     const selectedRegionElement = document.getElementById("selected-region");
     const findHospitalsButton = document.getElementById("find-hospitals");
+    const saveInfoButton = document.getElementById("save-info-button");
     const citySelect = document.getElementById("city-select");
     const manualLocation = document.getElementById("manual-location");
     const hospitalResults = document.getElementById("hospital-results");
 
     let selectedRegion = "";
+    // We'll store the latest user latitude and longitude after a successful hospital fetch.
+    let latestUserLat = null;
+    let latestUserLng = null;
 
-    // If you already have a "showSnackbar(message, type)" function from your homepage,
-    // be sure it's accessible or re-declare it here.
-    // Example:
+    // Custom snackbar function
     function showSnackbar(message, type) {
         const snackbar = document.getElementById("snackbar");
         snackbar.innerHTML = message;
@@ -21,20 +22,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
 
-    // -- Tooltip for region hovering --
+    // Tooltip for region hovering
     let tooltip = document.createElement("div");
     tooltip.classList.add("tooltip");
     document.body.appendChild(tooltip);
 
-    // -- Make each region clickable + hover effect --
+    // Make each region clickable with hover effects
     regions.forEach(region => {
         const regionName = region.getAttribute("name");
         if (!regionName) return;
 
-        // Hover Effect
         region.addEventListener("mouseenter", function (event) {
-            this.style.fill = "#900C3F"; // Highlight color
-            tooltip.style.display = "block";
+            this.style.fill = "#1e3a8a"; // Highlight color            tooltip.style.display = "block";
             tooltip.innerText = regionName;
             tooltip.style.left = event.pageX + "px";
             tooltip.style.top = (event.pageY - 30) + "px";
@@ -42,27 +41,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         region.addEventListener("mouseleave", function () {
             if (!this.classList.contains("selected")) {
-                this.style.fill = "#cccccc"; // Default color
+                this.style.fill = "#cccccc"; // Reset color
             }
             tooltip.style.display = "none";
         });
 
-        // Click to Select Region
         region.addEventListener("click", function (event) {
             event.stopPropagation();
-
             // Remove previous selection
             regions.forEach(r => r.classList.remove("selected"));
-
-            // Highlight the chosen region
+            // Highlight chosen region
             this.classList.add("selected");
             selectedRegion = regionName;
             selectedRegionElement.innerText = selectedRegion;
-
-            // Enable the button if region is selected
             findHospitalsButton.disabled = false;
-
-            // Prompt user to select a city
             showSnackbar(`Region "${regionName}" selected! Now pick a city.`, "success");
 
             // Fetch cities dynamically from DB
@@ -71,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(cities => {
                     citySelect.innerHTML = `<option value="">Choose a city...</option>`;
                     if (cities.length === 0) {
-                        showSnackbar("No cities found in this region. Try manual location?", "error");
+                        showSnackbar("No cities found in this region. Try other regions", "error");
                     }
                     cities.forEach(city => {
                         let option = document.createElement("option");
@@ -86,41 +78,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
         });
 
-        // Ensure entire region is clickable
         region.style.pointerEvents = "all";
     });
 
-    // -- On "Find Nearest Hospitals" Click --
+    // On "Find Nearest Hospitals" button click
     findHospitalsButton.addEventListener("click", () => {
         let selectedCity = citySelect.value;
         let enteredLocation = manualLocation.value.trim();
 
-        // Step 1: Validate that a region or location is chosen
-        if (!selectedRegion && !selectedCity && !enteredLocation) {
-            showSnackbar("Please select a region or enter a location first!", "error");
-            return;
-        }
-
-        // Step 2: If user selected region but not city or location
-        // encourage them to pick a city or type a location
         if (selectedRegion && !selectedCity && !enteredLocation) {
-            showSnackbar("Please select a city or type a more specific location.", "error");
+            showSnackbar("Please select a city", "error");
             return;
         }
 
-        // Step 3: Make the fetch call
-        fetch(`../includes/get-hospitals.php?region=${selectedRegion}&city=${selectedCity}&location=${enteredLocation}`)
+        // Build query parameters
+        const queryParams = `region=${selectedRegion}&city=${selectedCity}&location=${enteredLocation}`;
+
+        fetch(`../includes/get-hospitals.php?${queryParams}`)
             .then(response => response.json())
             .then(data => {
-                if (!Array.isArray(data)) {
-                    // Means we got an error object
-                    if (data.error) {
-                        showSnackbar(data.error, "error");
-                    } else {
-                        showSnackbar("Unexpected response from server.", "error");
+                if (data.error) {
+                    showSnackbar(data.error, "error");
+                } else if (data.hospitals && Array.isArray(data.hospitals)) {
+                    displayHospitals(data.hospitals);
+                    // Store the user location from the response if provided
+                    if (data.user_location) {
+                        latestUserLat = data.user_location.latitude;
+                        latestUserLng = data.user_location.longitude;
                     }
-                } else {
+                    // Enable the "Save Information" button after successful hospital fetch
+                    saveInfoButton.disabled = false;
+                } else if (Array.isArray(data)) {
                     displayHospitals(data);
+                    saveInfoButton.disabled = false;
+                } else {
+                    showSnackbar("Unexpected response from server.", "error");
                 }
             })
             .catch(error => {
@@ -129,7 +121,40 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     });
 
-    // -- Displaying Hospital Data --
+    // Save user search information when the "Save Information" button is clicked
+    saveInfoButton.addEventListener("click", () => {
+        // Validate that we have latest coordinates (from get-hospitals response)
+        if (latestUserLat === null || latestUserLng === null) {
+            showSnackbar("User location not available. Please search again.", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('region', selectedRegion);
+        formData.append('city', citySelect.value);
+        formData.append('latitude', latestUserLat);
+        formData.append('longitude', latestUserLng);
+        // Optionally: formData.append('selected_hospital', hospitalId);
+
+        fetch('../actions/update-user-history.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showSnackbar("User location and search history saved!", "success");
+            } else {
+                showSnackbar(result.error, "error");
+            }
+        })
+        .catch(error => {
+            console.error("Error updating user history:", error);
+            showSnackbar("Error updating user history.", "error");
+        });
+    });
+
+    // Display hospital results in the left panel
     function displayHospitals(hospitals) {
         if (!hospitals || hospitals.length === 0) {
             hospitalResults.innerHTML = "<h3>No Hospitals Found</h3>";
@@ -150,12 +175,11 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         });
 
-        // Show success message & scroll to results
         showSnackbar("Hospitals loaded successfully!", "success");
         hospitalResults.scrollIntoView({ behavior: "smooth" });
     }
 
-    // -- Opening Google Maps for Directions --
+    // Open Google Maps for directions
     window.openGoogleMaps = function(lat, lng) {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
     };

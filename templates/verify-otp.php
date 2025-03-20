@@ -9,6 +9,7 @@
     <link rel="manifest" href="../favicon_io/site.webmanifest">
     <title>Verify OTP</title>
     <link rel="stylesheet" type="text/css" href="../public/css/otp.css">
+    <link rel="stylesheet" href="../public/css/snackbar.css">
 </head>
 <body>
     <div class="container">
@@ -28,7 +29,25 @@
             <input type="submit" value="Verify">
         </form>
     </div>
+    <script type="text/javascript">
+        function checkForMessage() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('status') && params.has('message')) {
+                const message = params.get('message');
+                const status = params.get('status');
+                showSnackbar(message, status);
+            }
+        }
 
+        function showSnackbar(message, type) {
+            let snackbar = document.getElementById("snackbar");
+            snackbar.innerHTML = message;
+            snackbar.className = "show " + type;
+            setTimeout(() => {
+                snackbar.className = snackbar.className.replace("show", "");
+            }, 3000);
+        }
+    </script>
     <script src="../public/js/otp.js"></script>
 </body>
 </html>

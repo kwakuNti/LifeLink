@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $updateToken->close();
         }
 
-        header("Location: ../templates/dashboard.php");
+        header("Location: ../templates/selector-page");
     } else {
         header("Location: ../templates/login.php?status=error&message=Invalid email or password!");
     }

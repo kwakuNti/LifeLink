@@ -66,7 +66,7 @@ CREATE TABLE hospitals (
     latitude DECIMAL(9,6) NOT NULL,
     longitude DECIMAL(9,6) NOT NULL,
     organ_specialty ENUM('Kidney', 'Liver', 'Both') NOT NULL,
-    contact_info TEXT NOT NULL,
+    contact_info TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,8 +76,7 @@ CREATE TABLE transplants (
     match_id INT,
     hospital_id INT,
     status ENUM('scheduled', 'completed', 'failed'),
-    performed_at DATETIME,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    performed_at DATETIME,    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
     FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
 );
