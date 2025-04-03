@@ -23,8 +23,8 @@
   <div class="options">
     <!-- The 'role' parameter in the query string indicates the chosen role -->
     <a href="../actions/selector-action.php?role=donor" class="option">I Want to Donate</a>
-    <a href="../actions/selector-action.php?role=recipient" class="option">I Need a Transplant</a>
-  </div>
+    <a href="../templates/recipient_hospitals.php" class="option">I Need a Transplant</a>
+    </div>
 </div>
 <script type="text/javascript">
         function checkForMessage() {

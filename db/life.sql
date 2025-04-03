@@ -24,11 +24,17 @@ CREATE TABLE users (
 -- Donors Table
 CREATE TABLE donors (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
-    blood_type VARCHAR(10),
-    histo_compatibility TEXT,
-    organ_type ENUM('Kidney', 'Liver'),
-    availability_status BOOLEAN DEFAULT TRUE,
+    user_id INT,                  -- link to users table
+    init_age INT,                 -- e.g., 50
+    bmi_tcr FLOAT,                -- e.g., 25.0
+    dayswait_alloc INT,           -- e.g., 180
+    kidney_cluster INT,           -- e.g., 0 or 1
+    dgn_tcr FLOAT DEFAULT 0.0,    -- optional diagnosis code
+    wgt_kg_tcr FLOAT DEFAULT 0.0, 
+    hgt_cm_tcr FLOAT DEFAULT 0.0,
+    gfr FLOAT DEFAULT 0.0,        -- for cluster determination
+    on_dialysis BOOLEAN DEFAULT FALSE,  -- 'Y' => true, 'N' => false
+    blood_type VARCHAR(5) DEFAULT NULL,   -- ABO type (A, B, AB, O)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -57,7 +63,7 @@ CREATE TABLE matches (
     FOREIGN KEY (recipient_id) REFERENCES recipients(id) ON DELETE CASCADE
 );
 
--- Hospitals Table (Updated with Coordinates)
+-- Hospitals Table (Updated with Coordinates and credentials)
 CREATE TABLE hospitals (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
@@ -67,6 +73,8 @@ CREATE TABLE hospitals (
     longitude DECIMAL(9,6) NOT NULL,
     organ_specialty ENUM('Kidney', 'Liver', 'Both') NOT NULL,
     contact_info TEXT,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,7 +84,8 @@ CREATE TABLE transplants (
     match_id INT,
     hospital_id INT,
     status ENUM('scheduled', 'completed', 'failed'),
-    performed_at DATETIME,    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    performed_at DATETIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
     FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
 );
@@ -105,11 +114,21 @@ CREATE TABLE user_history (
     FOREIGN KEY (selected_hospital) REFERENCES hospitals(id) ON DELETE SET NULL
 );
 
+-- (In production, generate the hash dynamically using password_hash('Default@1', PASSWORD_DEFAULT).)
+INSERT INTO hospitals (name, region, city, latitude, longitude, organ_specialty, contact_info, username, password) VALUES
+    ('Korle Bu Teaching Hospital', 'Greater Accra', 'Accra', 5.536584, -0.226373, 'Both', '0302739510', 'korlebu', '$2y$10$9H4X4O/PPV.yzwKJXf6EPOxO7E/6iK0KB1XxOfY5mW/1eVJrsV7gG'),
+    ('The Bank Hospital', 'Greater Accra', 'Accra', 5.584862, -0.162038, 'Kidney', '+233 302 739 373', 'bankhospital', '$2y$10$9H4X4O/PPV.yzwKJXf6EPOxO7E/6iK0KB1XxOfY5mW/1eVJrsV7gG'),
+    ('Komfo Anokye Teaching Hospital', 'Ashanti', 'Kumasi', 6.697208, -1.629675, 'Kidney', '+233 593 830 400', 'komfoanokye', '$2y$10$9H4X4O/PPV.yzwKJXf6EPOxO7E/6iK0KB1XxOfY5mW/1eVJrsV7gG'),
+    ('37 Military Hospital', 'Greater Accra', 'Accra', 5.587329, -0.184266, 'Kidney', NULL, '37military', '$2y$10$9H4X4O/PPV.yzwKJXf6EPOxO7E/6iK0KB1XxOfY5mW/1eVJrsV7gG'),
+    ('University of Ghana Medical Centre (UGMC)', 'Greater Accra', 'Accra', 5.632420, -0.185963, 'Kidney', '+233 302 550843', 'ugmc', '$2y$10$9H4X4O/PPV.yzwKJXf6EPOxO7E/6iK0KB1XxOfY5mW/1eVJrsV7gG');
 
--- Insert Hardcoded Hospitals into the Database
-INSERT INTO hospitals (name, region, city, latitude, longitude, organ_specialty, contact_info) VALUES
-    ('Korle Bu Teaching Hospital', 'Greater Accra', 'Accra', 5.536584, -0.226373, 'Both', '0302739510'),
-    ('The Bank Hospital', 'Greater Accra', 'Accra', 5.584862, -0.162038, 'Kidney', '+233 302 739 373'),
-    ('Komfo Anokye Teaching Hospital', 'Ashanti', 'Kumasi', 6.697208, -1.629675, 'Kidney', '+233 593 830 400'),
-    ('37 Military Hospital', 'Greater Accra', 'Accra', 5.587329, -0.184266, 'Kidney', NULL),
-    ('University of Ghana Medical Centre (UGMC)', 'Greater Accra', 'Accra', 5.632420, -0.185963, 'Kidney', '+233 302 550843');
+
+ALTER TABLE matches 
+  MODIFY status ENUM(
+    'pending',
+    'matched',
+    'accepted',
+    'declined',
+    'transplanted',
+    'canceled'
+  ) NOT NULL DEFAULT 'pending';

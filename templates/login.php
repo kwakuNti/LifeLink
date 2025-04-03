@@ -25,14 +25,6 @@
 				<h2 class="title">Welcome</h2>
 				
 				<div id="snackbar"></div> <!-- Snackbar for validation messages -->
-								<!-- Google Login Button -->
-
-
-								<a href="../actions/google-login.php" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
-    <p style="text-decoration: underline; margin: 0; margin-right: 10px;">Or login with Google</p>	
-    <img src="../assets/images/google-icon.png" style="height: 30px;" alt="google-logo"/>
-</a>
-    
 
 				<!-- Email input with HTML5 email validation -->
            		<div class="input-div one">

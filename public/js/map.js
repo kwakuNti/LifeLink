@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
+
+  document.addEventListener("DOMContentLoaded", () => {
     const regions = document.querySelectorAll("path"); // Select all path elements inside SVG
     const selectedRegionElement = document.getElementById("selected-region");
     const findHospitalsButton = document.getElementById("find-hospitals");
@@ -33,7 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!regionName) return;
 
         region.addEventListener("mouseenter", function (event) {
-            this.style.fill = "#1e3a8a"; // Highlight color            tooltip.style.display = "block";
+            this.style.fill = "#1e3a8a"; // Highlight color
+            tooltip.style.display = "block";
             tooltip.innerText = regionName;
             tooltip.style.left = event.pageX + "px";
             tooltip.style.top = (event.pageY - 30) + "px";
@@ -63,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(cities => {
                     citySelect.innerHTML = `<option value="">Choose a city...</option>`;
                     if (cities.length === 0) {
-                        showSnackbar("No cities found in this region. Try other regions", "error");
+                        showSnackbar("No cities with Transplant hospitals found in this region. Try other regions", "error");
                     }
                     cities.forEach(city => {
                         let option = document.createElement("option");
@@ -144,6 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(result => {
             if (result.success) {
                 showSnackbar("User location and search history saved!", "success");
+                // ADDITION: Redirect to match page after success
+                setTimeout(() => {
+                    window.location.href = '../templates/match-page';
+                }, 1500); 
             } else {
                 showSnackbar(result.error, "error");
             }
@@ -183,4 +189,55 @@ document.addEventListener("DOMContentLoaded", () => {
     window.openGoogleMaps = function(lat, lng) {
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
     };
-});
+
+    // 3) ADD: Step-by-step tutorial using SweetAlert2
+
+    function startTutorial() {
+      Swal.fire({
+        title: 'Tutorial: How to Use the Map',
+        text: 'Some Regions Have No Transplant Hospitals, Click next to continue',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          stepOne();
+        }
+      });
+    }
+
+    function stepOne() {
+      Swal.fire({
+        title: 'Step 1: Pick a Region by selecting it on the map',
+        text: 'Click on one of the regions on the map to select it. Your Geometry must be good😉',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then(() => {
+        stepTwo();
+      });
+    }
+
+    function stepTwo() {
+      Swal.fire({
+        title: 'Step 2: Select a City',
+        text: 'If available, choose a city from the dropdown. If none appear, try another region.',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then(() => {
+        stepThree();
+      });
+    }
+
+    function stepThree() {
+      Swal.fire({
+        title: 'Step 3: Find Hospitals',
+        text: 'Click the "Find Nearest Hospitals" button to see a list of matches.',
+        icon: 'info',
+        confirmButtonText: 'Got It!',
+      });
+    }
+
+    // 4) Call the tutorial on page load
+    startTutorial();
+
+  });
+  

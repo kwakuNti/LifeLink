@@ -16,16 +16,25 @@
 </head>
 <body onload="checkForMessage()">
     <div class="container">
-        <div class="img">
-            <img src="../assets/images/login-removebg-preview.png" alt="Login Image">
+        
+    <div class="img" style="position: relative;">
+    <img src="../assets/images/login-removebg-preview.png" alt="Login Image">
+            <!-- The link is absolutely positioned on top of the image -->
+    <a href="hospital_selector.php" class="hospital-portal-link">
+      Hospital Portal
+    </a>
         </div>
         <div class="login-content">
             <form  action="../actions/signup.php" method="POST" onsubmit="return validateForm()">
                 <img src="../assets/images/avatar-svgrepo-com.svg" alt="Avatar">
+                
                 <h2 class="title">Sign Up</h2>
 
                 <div id="snackbar"></div>
-
+                <a href="../actions/google-login.php" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
+    <p style="text-decoration: underline; margin: 0; margin-right: 10px;">Or login with Google</p>	
+    <img src="../assets/images/google-icon.png" style="height: 30px;" alt="google-logo"/>
+</a>
                 <!-- First Name -->
                 <div class="input-div one">
                     <div class="i">
@@ -85,9 +94,30 @@
                 <a href="login">Already have an account? Login</a>
 
                 <input type="submit" class="btn" value="Sign Up">
+               
             </form>
         </div>
     </div>
+    <style>
+        .hospital-portal-link {
+  position: absolute;
+  top: 50px;      /* distance from top edge of .img container */
+  right:  170px;    /* distance from right edge of .img container */
+  padding: 0.5rem 1rem;
+  background-color: #222;
+  color: #fff;
+  border-radius: 5px;
+  font-weight: 900;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  font-size: larger;
+}
+
+.hospital-portal-link:hover {
+  background-color: #224;
+}
+
+    </style>
     <script type="text/javascript">
         function checkForMessage() {
             const params = new URLSearchParams(window.location.search);

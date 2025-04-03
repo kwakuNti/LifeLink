@@ -1,0 +1,192 @@
+Detailed Documentation of Donor-Recipient Matching & Outcome Modeling Pipelines
+Overview
+In this project, we built two parallel pipelines—one for kidney data and one for liver data—with the dual objectives of:
+
+Matching Candidates:
+Using unsupervised techniques (KMeans clustering and nearest neighbors) to derive additional features (e.g., Kidney_Cluster, Liver_Cluster) and establish a framework for similarity-based matching.
+
+Outcome Prediction:
+Developing supervised models to predict transplant success. We defined “Transplant_Success” as a binary outcome based on the COMPOSITE_DEATH_DATE (i.e., success if the date is null, meaning the patient is alive at follow‑up).
+
+Both pipelines involve extensive data cleaning, feature engineering, and model tuning using grid search with cross‑validation.
+
+Data Processing & Preprocessing
+Data Loading
+Kidney Data:
+We load the kidney candidate data (from a file named KIDPAN_DATA.DAT) using metadata extracted from kidey.txt. The metadata file provides column definitions that help label the raw, tab-delimited data.
+
+Liver Data:
+Similarly, the liver data is loaded from a file (e.g., LIVER_DATA.DAT) using metadata from liver.txt.
+
+Data Cleaning
+For both datasets we:
+
+Replace Dot Values:
+In the raw data, missing values are often denoted by a dot ("."). We replace these with NaN.
+
+Convert Date Columns:
+Any column with “DATE” or “DT” in its name is converted to a datetime object. This allows for proper handling of time-related variables.
+
+Drop High-Missing Columns:
+Columns with over 80% missing data are dropped to reduce noise and ensure that our models train on reliable features.
+
+Imputation:
+Remaining missing values are imputed:
+
+Numeric columns: Filled with the median value.
+
+Categorical columns: Filled with the mode.
+
+Outcome Definition
+We define the outcome variable “Transplant_Success” as follows:
+
+Transplant_Success = 1:
+When COMPOSITE_DEATH_DATE is null (interpreted as the patient being alive at follow‑up).
+
+Transplant_Success = 0:
+When COMPOSITE_DEATH_DATE is provided (interpreted as a transplant failure based on death).
+
+This definition can be refined further with more detailed clinical criteria, but it serves as a starting point for our predictive modeling.
+
+Unsupervised Clustering for Additional Feature Extraction
+Rationale
+Unsupervised clustering is used to capture latent structure in the data that might not be apparent from raw features. For example:
+
+In the kidney pipeline, we selected candidate features such as blood type (ABO), kidney function (GFR), dialysis status (ON_DIALYSIS), age (INIT_AGE), BMI (BMI_TCR), and waiting time (DAYSWAIT_ALLOC).
+
+In the liver pipeline, candidate features include blood type (ABO), age, BMI, waiting time (DAYSWAIT_CHRON), gender, and liver-cancer diagnosis indicators (HCC_DIAGNOSIS_TCR, if available).
+
+Process
+Feature Extraction:
+We extract the candidate features, converting those that should be numeric (e.g., GFR, INIT_AGE, BMI_TCR, waiting time) and applying one-hot encoding to categorical features such as ABO (and GENDER or HCC_DIAGNOSIS_TCR for liver).
+
+Scaling:
+Features are standardized using StandardScaler to ensure they are on the same scale, which is crucial for distance-based clustering methods.
+
+Clustering:
+We apply KMeans clustering (using k=2 as a starting point) to these scaled candidate features. The resulting cluster labels (Kidney_Cluster or Liver_Cluster) are added to the dataset as new features. These clusters can capture underlying phenotypic differences among patients that may be useful both for matching and outcome prediction.
+
+Saving Objects:
+The scaler and clustering models are saved for future use, ensuring that new data can be processed consistently.
+
+Feature Engineering for Outcome Modeling
+Rationale
+The quality of a predictive model often depends on the input features. Beyond the raw variables, we:
+
+Expand the Feature Set:
+In the kidney pipeline, in addition to base features like INIT_AGE, BMI_TCR, and waiting time (DAYSWAIT_ALLOC), we also include additional donor/recipient measures when available (e.g., weight and height).
+
+Create Interaction Terms:
+For example, an interaction term between age and BMI (AGE_BMI_Interaction) may capture how these variables jointly influence transplant outcomes.
+
+Transform Skewed Variables:
+Waiting times (DAYSWAIT_ALLOC or DAYSWAIT_CHRON) are often right-skewed. We apply a log-transformation (with a small constant added) to reduce skewness and improve model stability.
+
+Drop Redundant Variables:
+To avoid multicollinearity, we may drop original features after transformation if needed.
+
+Implementation
+The engineered features are combined into a modeling DataFrame. We ensure all features are numeric, and any remaining missing values are imputed using medians.
+
+Supervised Model Building & Refinement
+Models Explored
+We built and compared multiple models using pipelines and grid search:
+
+Logistic Regression:
+A baseline linear model that is interpretable but may have limited flexibility for nonlinear relationships.
+
+Random Forest:
+A tree-based ensemble that can capture nonlinearities and interactions. We apply class weighting to handle outcome imbalance.
+
+Gradient Boosting:
+Another powerful ensemble method that builds trees sequentially. It can capture complex interactions in the data.
+
+XGBoost:
+A highly optimized gradient boosting framework, often performing very well on structured/tabular data.
+
+Neural Networks (MLPClassifier):
+Using a multi-layer perceptron, we explore whether a neural network can capture complex, nonlinear relationships that the other models might miss.
+
+Grid Search & Cross-Validation
+GridSearchCV:
+For each model, we set up a parameter grid and run GridSearchCV (with 5-fold cross-validation) to optimize hyperparameters using ROC AUC as the scoring metric. This process ensures that each model is tuned for optimal performance and that our comparisons are robust.
+
+Class Weighting:
+Due to imbalanced outcomes (more transplant successes than failures), many models (Logistic Regression, Random Forest, etc.) are set with class_weight='balanced' to penalize misclassifications of the minority class more heavily.
+
+Model Selection:
+We compare the cross-validated ROC AUC scores of all candidate models and select the model with the highest score as the overall best model.
+
+Evaluation & Validation
+Test Set Evaluation
+The selected best model is evaluated on a held-out test set. We generate:
+
+Classification Reports:
+Including precision, recall, and F1-score for both classes.
+
+Confusion Matrices:
+To see how many false positives and false negatives occur.
+
+ROC AUC Score:
+To summarize overall discriminative ability.
+
+ROC Curve Plots:
+For visual interpretation of the model's performance.
+
+External Validation
+While the current pipelines use cross-validation and a dedicated test set for internal validation, the next step in a production setting would be to validate the models on an external dataset to ensure generalizability.
+
+Integration with Unsupervised Matching
+Nearest Neighbors Matching
+As an unsupervised extension:
+
+We built a Nearest Neighbors matching function for both kidney and liver datasets.
+
+This function retrieves the most similar candidate profiles based on the scaled candidate features.
+
+In a complete donor-recipient matching system, you would have separate donor and recipient datasets and use such a matching function to pair similar profiles.
+
+The matching function can be further refined with additional clinical constraints and similarity measures.
+
+Saving Models & Key Objects
+To ensure reproducibility and enable future predictions without re-training, key objects such as the best model pipelines, scalers, and clustering models are saved using joblib.
+
+Summary & Next Steps
+Kidney Pipeline:
+
+Data is loaded, cleaned, and imputed.
+
+An outcome variable (“Transplant_Success”) is defined.
+
+Unsupervised clustering produces a “Kidney_Cluster” feature.
+
+Features are engineered (interaction terms, log-transformation).
+
+Multiple models are tuned and compared using GridSearchCV, including neural networks.
+
+The best model is evaluated, and key objects are saved.
+
+Liver Pipeline:
+
+Follows a similar process, adapted with liver-specific candidate features (e.g., DAYSWAIT_CHRON, GENDER, HCC_DIAGNOSIS_TCR).
+
+A “Liver_Cluster” feature is derived via KMeans.
+
+Additional clinical features (e.g., weight, height) are incorporated.
+
+Multiple models are tuned and the best model is selected based on ROC AUC.
+
+The best model is evaluated, and objects are saved.
+
+Future Enhancements
+Feature Expansion:
+Further clinical, donor, and recipient variables (e.g., lab values, follow-up data, complication metrics) can be incorporated to improve prediction accuracy.
+
+Advanced Modeling & Ensemble Methods:
+In addition to the individual models, ensemble methods (e.g., stacking or voting) could be explored for improved performance.
+
+External Validation:
+Use external datasets to validate the model's generalizability.
+
+Integration into Matching System:
+Combine the outcome prediction with the unsupervised matching (using nearest neighbors) to create a comprehensive donor-recipient matching framework.
