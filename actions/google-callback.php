@@ -43,6 +43,8 @@ if (isset($_GET['code'])) {
     $_SESSION['user_id'] = $userId;
     $_SESSION['name'] = $name;
     $_SESSION['email'] = $email;
+    $_SESSION['role'] = 'donor'; // Set the role to donor
+
 
     header("Location: ../templates/selector-page.php");
     exit();

@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../favicon_io/site.webmanifest">
-  <title>Kidney Transplant </title>
+  <title>Liver Transplant Success Prediction</title>
   <link rel="stylesheet" href="../public/css/snackbar.css">
   <!-- Use your desired font -->
   <link
@@ -240,7 +240,7 @@
   </header>
 
   <div class="container">
-    <h2 class="page-title">Kidney Transplant Information</h2>
+    <h2 class="page-title">Liver Transplant Information</h2>
     
     <!-- Main Form: Outcome Prediction -->
     <form action="../actions/donor_medical_info_action.php" method="post">

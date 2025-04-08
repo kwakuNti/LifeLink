@@ -1,3 +1,7 @@
+<?php
+// Start session if needed for other purposes
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,17 +90,17 @@
     }
   </style>
 </head>
-<body onload="checkForMessage()">
+<body onload="initializePage()">
   <div class="container">
-    <!-- No logo as requested -->
-    <h2 class="form-title" id="formTitle">Hospital Login</h2>
-    <!-- Display hospital name dynamically -->
+    <!-- Hospital Info (icon and name) -->
     <div class="logo">
-    <p id="hospitalDisplay" style="font-family: 'Poppins', sans-serif; font-size: 18px; color: #333; margin-bottom: 20px;"></p>
-
-      <img src="../assets/images/icon-hospital.png" alt="LifeLink Logo">
+      <p id="hospitalDisplay" style="font-family: 'Poppins', sans-serif; font-size: 18px; color: #333; margin-bottom: 20px;"></p>
+      <img src="../assets/images/icon-hospital.png" alt="Hospital Icon">
     </div>
+    <h2 class="form-title" id="formTitle">Hospital Login</h2>
     <form action="../actions/hospital_login.php" method="POST" onsubmit="return validateHospitalLogin()">
+      <!-- Hidden input to persist hospital_id -->
+      <input type="hidden" id="hospital_id" name="hospital_id" value="">
       <!-- Username -->
       <div class="input-div one">
         <div class="i">
@@ -122,6 +126,8 @@
       </div>
       <!-- Forgot Password link -->
       <a href="h-forgot-password.php">Forgot Password?</a>
+      <a href="login">Back User Login</a>
+
       <!-- Submit Button -->
       <input type="submit" class="btn" value="Login">
     </form>
@@ -129,12 +135,41 @@
   </div>
   
   <script>
-    function checkForMessage() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has('status') && params.has('message')) {
-        const message = params.get('message');
-        const status = params.get('status');
-        showSnackbar(message, status);
+    // Hardcoded mapping for hospital details (could be replaced with dynamic lookup)
+    const hospitalData = {
+      "1": { name: "Korle Bu Teaching Hospital", themeColor: "#fce4ec" },
+      "2": { name: "The Bank Hospital", themeColor: "#e8f5e9" },
+      "3": { name: "Komfo Anokye Teaching Hospital", themeColor: "#e3f2fd" },
+      "4": { name: "37 Military Hospital", themeColor: "#fff3e0" },
+      "5": { name: "University of Ghana Medical Centre (UGMC)", themeColor: "#f9fbe7" }
+    };
+
+    // Use localStorage to persist hospital_id across page reloads or error redirects
+    function initializePage() {
+      // Try to get hospital_id from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      let hospitalId = urlParams.get('hospital_id');
+      
+      // If not in URL, try localStorage
+      if (!hospitalId) {
+        hospitalId = localStorage.getItem('hospital_id');
+      } else {
+        // Save hospital_id to localStorage
+        localStorage.setItem('hospital_id', hospitalId);
+      }
+      
+      // Save hospital_id in the hidden input so it is submitted with the form
+      document.getElementById('hospital_id').value = hospitalId || "";
+      
+      // If hospitalId is valid, update page details
+      if (hospitalId && hospitalData[hospitalId]) {
+        const hospital = hospitalData[hospitalId];
+        // document.getElementById('hospitalDisplay').textContent = hospital.name;
+        document.body.style.backgroundColor = hospital.themeColor;
+        document.getElementById('formTitle').textContent = "Welcome to " + hospital.name;
+      } else {
+        showSnackbar("Invalid hospital selection.", "error");
+        document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
       }
     }
     
@@ -155,28 +190,6 @@
         return false;
       }
       return true;
-    }
-    
-    // Hardcoded mapping for hospital details
-    const hospitalData = {
-      "1": { name: "Korle Bu Teaching Hospital", themeColor: "#fce4ec" },
-      "2": { name: "The Bank Hospital", themeColor: "#e8f5e9" },
-      "3": { name: "Komfo Anokye Teaching Hospital", themeColor: "#e3f2fd" },
-      "4": { name: "37 Military Hospital", themeColor: "#fff3e0" },
-      "5": { name: "University of Ghana Medical Centre (UGMC)", themeColor: "#f9fbe7" }
-    };
-    
-    // Get hospital_id from URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const hospitalId = params.get('hospital_id');
-    
-    if (!hospitalId || !hospitalData[hospitalId]) {
-      showSnackbar("Invalid hospital selection.", "error");
-      document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
-    } else {
-      const hospital = hospitalData[hospitalId];
-      document.body.style.backgroundColor = hospital.themeColor;
-      document.getElementById('formTitle').textContent = "Welcome to " + hospital.name;
     }
   </script>
   <script type="text/javascript" src="../public/js/login.js"></script>

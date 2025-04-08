@@ -109,13 +109,11 @@
   border-radius: 5px;
   font-weight: 900;
   text-decoration: none;
-  transition: background-color 0.3s ease;
   font-size: larger;
 }
 
-.hospital-portal-link:hover {
-  background-color: #224;
-}
+
+
 
     </style>
     <script type="text/javascript">

@@ -26,8 +26,12 @@ $gfr      = isset($_POST['gfr']) ? (float)$_POST['gfr'] : 0.0;
 $onDialysis = $_POST['on_dialysis'] ?? 'N';
 $onDialysisBool = ($onDialysis === 'Y') ? 1 : 0;
 
-// Blood Type (A, B, AB, O, or '')
+// Blood Type (A, B, AB, O)
 $bloodType = $_POST['blood_type'] ?? '';
+if (empty($bloodType)) {
+    header("Location: ../templates/donor_medical_info.php?status=error&message=Blood type is required.");
+    exit();
+}
 
 // Basic validation for required fields
 if ($initAge <= 0 || $bmiTcr <= 0.0 || $dayswaitAlloc < 0) {
@@ -55,11 +59,7 @@ if (isset($_FILES['medical_doc']) && $_FILES['medical_doc']['error'] === 0) {
         exit();
     }
 
-    // Example: If you want to do OCR, you'd do it here:
-    // require_once 'vendor/autoload.php';
-    // $ocr = new TesseractOCR($destination);
-    // $extractedInfo = $ocr->run();
-    // For demonstration, we simulate the extraction:
+    // Simulate OCR extraction for demonstration
     $extractedInfo = "[Simulated OCR output from $filename]";
 }
 
@@ -139,8 +139,7 @@ if ($stmt->num_rows > 0) {
 
 $conn->close();
 
-// Optionally store or log $extractedInfo if you want to keep the OCR results
-// For example, you could store them in a separate "notes" table or a "reports" table
+// Optionally log $extractedInfo if needed
 
 // 4. Redirect to the next step
 header("Location: ../templates/map.php?status=success&message=Medical information submitted successfully.");

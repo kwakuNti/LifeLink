@@ -43,7 +43,11 @@ if ($stmt->num_rows > 0) {
 $stmt->close();
 $conn->close();
 
-// Redirect to the donor medical information page
-header("Location: ../templates/donor_medical_info.php?status=success&message=Organ selection saved.");
+// Redirect based on the organ selected
+if ($organ === 'Kidney') {
+    header("Location: ../templates/donor_medical_info.php?status=success&message=Organ selection saved.");
+} else if ($organ === 'Liver') {
+    header("Location: ../templates/liver_donor_info.php?status=success&message=Organ selection saved.");
+}
 exit();
 ?>

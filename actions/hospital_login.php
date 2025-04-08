@@ -32,7 +32,7 @@ if ($stmt = $conn->prepare("SELECT id, name, password FROM hospitals WHERE usern
             // Successful login: set session variables
             $_SESSION['hospital_id'] = $hospital['id'];
             $_SESSION['hospital_name'] = $hospital['name'];
-            header("Location: ../templates/hospital_admin.php?status=success&message=Welcome " . urlencode($hospital['name']));
+            header("Location: ../templates/hospital-admin.php?status=success&message=Welcome " . urlencode($hospital['name']));
             exit();
         } else {
             header("Location: ../templates/hospital_login.php?status=error&message=Invalid credentials");
