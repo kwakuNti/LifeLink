@@ -999,6 +999,17 @@ $pCode = $match['patient_code'] ?? 'Patient #' . $match['id'];
             ?>
             <?php if ($match_record): ?>
               <?php
+              // Get recipient's hospital_id through the match
+    $stmtHospital = $conn->prepare("SELECT r.hospital_id 
+    FROM recipients r
+    JOIN matches m ON m.recipient_id = r.id
+    WHERE m.id = ?");
+$stmtHospital->bind_param("i", $match_record['id']);
+$stmtHospital->execute();
+$hospitalResult = $stmtHospital->get_result();
+$hospitalData = $hospitalResult->fetch_assoc();
+$hospital_id = $hospitalData['hospital_id'] ?? null;
+$stmtHospital->close();
               // Check if a transplant record already exists for this match
               $stmtTransplant = $conn->prepare("SELECT id FROM transplants WHERE match_id = ?");
               $stmtTransplant->bind_param("i", $match_record['id']);
@@ -1012,11 +1023,11 @@ $pCode = $match['patient_code'] ?? 'Patient #' . $match['id'];
               <?php else: ?>
                 <!-- Confirm Transplant Form (AJAX) -->
                 <form method="post" action="" id="confirmTransplantForm" style="margin-top:20px;">
-                  <input type="hidden" name="match_id" value="<?php echo $match_record['id']; ?>">
-                  <input type="hidden" name="hospital_id" value="<?php echo isset($_SESSION['hospital_id']) ? $_SESSION['hospital_id'] : ''; ?>">
-                  <input type="hidden" name="status" value="completed">
-                  <button type="submit" name="confirm_transplant" class="match-button" style="width: auto; padding: 0 20px;">Confirm Transplant</button>
-                </form>
+        <input type="hidden" name="match_id" value="<?php echo $match_record['id']; ?>">
+        <input type="hidden" name="hospital_id" value="<?php echo htmlspecialchars($hospital_id); ?>">
+        <input type="hidden" name="status" value="completed">
+        <button type="submit" name="confirm_transplant" class="match-button" style="width: auto; padding: 0 20px;">Confirm Transplant</button>
+      </form>
               <?php endif; ?>
             <?php else: ?>
               <div class="matched-label" style="margin-top:20px;">Please confirm a match first.</div>

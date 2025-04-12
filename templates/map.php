@@ -4,41 +4,430 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
-    <link rel="manifest" href="../favicon_io/site.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
+  <link rel="manifest" href="../favicon_io/site.webmanifest">
   <title>Find Nearest Hospitals</title>
   <link rel="stylesheet" href="../public/css/map.css" />
   <link rel="stylesheet" href="../public/css/snackbar.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+  <!-- Add icons from Google Fonts -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Add modern font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Outer container: existing id "map-container" is preserved -->
-  <div class="map-container">
-    <!-- Left Panel: Location refinement & hospital results -->
-    <div class="left-panel">
+  <style>
+    /* Base styles and resets */
+:root {
+  --primary-color: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --secondary-color: #16a34a;
+  --secondary-light: #22c55e;
+  --secondary-dark: #15803d;
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --success-color: #10b981;
+  --border-radius: 8px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
 
-      <h3>Selected Region: <span id="selected-region">None</span></h3>
-      <div class="location-refinement">
-          <label for="city-select">Select a City:</label>
-          <select id="city-select">
-              <option value="">Choose a city...</option>
-              <!-- Cities will be dynamically loaded -->
-          </select>
-          <input type="hidden" id="manual-location" placeholder="Type your location" />
-          <button id="find-hospitals" disabled>Find Nearest Hospitals</button>
-          
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+  color: var(--neutral-800);
+  background-color: var(--neutral-100);
+}
+
+/* Page Structure */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  background-color: white;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.page-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 1.75rem;
+}
+
+.subtitle {
+  color: var(--neutral-600);
+  margin-top: 0.25rem;
+}
+
+.main-content {
+  display: flex;
+  max-width: 1280px;
+  margin: 2rem auto;
+  gap: 2rem;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+    padding: 0 1rem;
+  }
+}
+
+.page-footer {
+  background-color: var(--neutral-800);
+  color: var(--neutral-200);
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: auto;
+}
+
+/* Section Styles */
+.map-section, .control-section {
+  flex: 1;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.region-indicator {
+  color: var(--neutral-600);
+  font-size: 0.875rem;
+}
+
+.highlight {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Map Container */
+.ghana-map-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  height: 500px;
+  overflow: hidden;
+}
+
+.ghana-map-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--neutral-200);
+  background-color: var(--neutral-50);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Form Elements */
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--neutral-700);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: white;
+  width: 100%;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+}
+
+.confirm-btn {
+  background-color: var(--secondary-color);
+  color: white;
+  width: 100%;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background-color: var(--secondary-dark);
+}
+
+.action-btn {
+  background-color: var(--neutral-100);
+  color: var(--neutral-800);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.action-btn:hover {
+  background-color: var(--neutral-200);
+}
+
+.btn:disabled {
+  background-color: var(--neutral-300);
+  cursor: not-allowed;
+}
+
+/* Hospital Results */
+.results-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--neutral-400);
+  text-align: center;
+}
+
+.empty-state .material-icons {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hospital-card {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--neutral-200);
+  transition: all 0.3s ease;
+}
+
+.hospital-card:last-child {
+  border-bottom: none;
+}
+
+.hospital-card h4 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+  color: var(--neutral-800);
+  font-weight: 600;
+}
+
+.hospital-card p {
+  color: var(--neutral-600);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.hospital-card .hospital-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.hospital-card .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.hospital-card.selected-hospital {
+  background-color: rgba(37, 99, 235, 0.05);
+  border-left: 4px solid var(--primary-color);
+}
+
+.hospital-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.directions-btn {
+  background-color: var(--neutral-100);
+  color: var(--neutral-700);
+}
+
+.directions-btn:hover {
+  background-color: var(--neutral-200);
+}
+
+.confirm-button {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: var(--secondary-dark);
+}
+
+/* Tooltip for map */
+.tooltip {
+  position: absolute;
+  background-color: var(--neutral-800);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+  transform: translateX(-50%);
+}
+
+.tooltip:after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--neutral-800);
+}
+
+/* Snackbar style update */
+#snackbar {
+
+  background-color: var(--neutral-800);
+  color: white;
+
+  border-radius: var(--border-radius);
+  visibility: hidden;
+    min-width: 250px;
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 30px; /* Position from the right */
+    top: 30px;   /* Position from the top */
+    font-size: 17px;
+  box-shadow: var(--shadow-lg);
+}
+
+#snackbar.success {
+  background-color: var(--success-color);
+}
+
+#snackbar.error {
+  background-color: var(--danger-color);
+}
+
+#snackbar.warning {
+  background-color: var(--warning-color);
+}
+
+#snackbar.show {
+  visibility: visible;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+
+  </style>
+  <div class="page-container">
+    <header class="page-header">
+      <div class="header-content">
+        <h1><span class="material-icons">local_hospital</span> Transplant Hospital Finder</h1>
+        <p class="subtitle">Find and connect with specialized hospitals in your region</p>
       </div>
-      <div id="hospital-results"></div>
-    </div>
-    
-    <!-- Right Panel: SVG Map -->
-    <div class="right-panel">
-                        <!-- New button to save the location/search info -->
-                        <button id="save-info-button" disabled>Save Search Information</button>
-      <div class="ghana-map-container">
-      <svg baseprofile="tiny" fill="#6f9c76" height="1000" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" version="1.2" viewbox="0 0 1000 1000" width="1000" xmlns="http://www.w3.org/2000/svg">
+    </header>
+
+    <main class="main-content">
+      <!-- Left Panel: Interactive Map -->
+      <section class="map-section">
+        <div class="section-header">
+          <h2><span class="material-icons">map</span> Select Your Region</h2>
+          <span class="region-indicator">Selected: <span id="selected-region" class="highlight">None</span></span>
+        </div>
+        <div class="ghana-map-container">
+        <svg baseprofile="tiny" fill="#6f9c76" height="1000" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" version="1.2" viewbox="0 0 1000 1000" width="1000" xmlns="http://www.w3.org/2000/svg">
      <g id="features">
       <path d="M304.3 727.8l-0.7-0.2-0.4-0.5-0.4-0.6-0.4-0.3-0.4-0.4-0.3-0.4-0.4-0.3-0.3-0.3-0.4-0.1-0.5-0.3-0.5 0-0.6-0.3-0.2-0.4 0-0.6 0.1-0.6-0.4-0.4-0.4-0.6-0.5-0.6-0.7-0.3-0.5-0.5-0.5 0-0.7-0.1-0.5-0.2-0.6-0.5-0.6 0-0.6 0.1-0.5 0.1-1.3 0.6-1.1 0.4-2 0.8-0.1-0.6 0-0.6-0.4-0.4-0.1-0.6-0.4-0.6-0.5-0.1-0.2-1 0.6-0.3 0.3-0.3 0.3-0.8 0.5-0.2 0.3-0.3 0.6-0.8 0.5-0.3 0.7-0.3 0.7-0.4 0-0.6-0.1-0.5-0.8 0.3-0.8-0.5-0.6 0-0.5-0.4-0.5-0.4-0.9-0.9-0.5-0.4-0.4-0.3-0.9-0.3-0.6-0.4-0.5-0.2-0.9-0.3-0.6-0.7-0.6-1.5-0.6-0.2-0.3-0.9-1-1-1.5-0.5-0.4-0.3-2.2-0.5-0.4 0.1-1.1-0.2-0.5 0.6-0.9-0.6-1 0.7-0.2 0.5-0.3 0.4-0.3 1-0.6 0.3-0.1-0.9-0.1-0.6-0.2-0.7-0.1-0.7-0.2-2.2-0.3-3-0.1-0.8-0.7-0.3-1.1-0.4-0.3-0.3-0.5-0.5-0.3-0.3-0.6-0.1-0.9-0.1-0.7-0.2-1.4-0.1-0.6 0.2-0.9 0.4-0.6 0.2-0.7 0.3-0.4-0.2-0.6-0.2-0.7-0.2-0.6 0.2-0.5 0.2-0.5 0.5-0.4 0.1-0.5 0.3-0.4-0.3-0.1-0.8-0.2-0.4-0.1-0.7-0.3-0.5-0.3-0.4-0.4-0.5-0.5-0.1-0.5-0.4-0.4-0.4 0-0.4-0.3-0.5-0.4-0.4-0.4 0.2-0.5-0.2-0.5 0-0.4-0.4-0.6-0.4-0.4-0.4-0.7-0.2 0-0.4-0.5-0.6-0.5-0.1-0.3-0.3-0.6 0-0.5-0.4-0.5-0.4-0.6 0.1-0.7 0-0.6 0.4-0.6 0.1-0.2-0.6 0.2-0.5 0.3-0.4-0.5-0.4-0.5-0.6 0.4-0.2 0.4-0.2 0.6-0.1 0.5 0 0.5-0.2 0.5-0.4 0.4-0.4 0.3-0.6-0.1-0.8-0.5-0.5-0.4-0.4-0.3-0.6-0.3-0.6-0.3-0.4 0.1-0.4 0.4-0.1-0.2-0.5-0.3-0.6 0.1-0.4 0.3-0.3-0.5-0.3-0.4-0.5 0.1-0.4 0.5-0.5 0.3-0.6 0.1-0.6 0.3-0.4 0.4-0.2 0.5-0.4 0.5-0.5 0.1-0.7 0.4-0.4 0.3-0.3 0-0.7-0.2-0.5-0.4-0.7-0.4-0.4-0.2-0.5 0.1-0.4 0.5-0.2 0.1-0.4 0.2-0.5 0.5-0.5 0.1-0.5-0.2-0.5-0.6-0.6-0.5-0.3 0-0.5 0.5-0.3-0.3-0.6-0.3-0.3-0.1-0.6-0.4-0.2-0.8-0.3 0-0.8 0.3-0.7 0.1-0.6-0.3-0.5-0.1-0.3-0.6-0.4-0.2-0.7-0.4-0.5 0.5-0.1 0.4-0.4 0.1-0.5-0.1-0.7 0.1-0.5 0.5-0.3 0.1-0.5 0.3-0.3 0.1-0.5 0.1-0.5 0.2-0.4 0-0.4-0.3-0.5-0.1-0.7-0.1-0.7-0.2-0.4-0.1-0.6 0-0.7 0.3-0.3 0.1-0.5 0.3-0.4 0-0.6 0.1-0.6 0-0.6-0.1-0.5-0.1-0.5 0.2-0.6 0.3-0.8 0.5-0.6 0.6-0.4 0.6 0 0.5-0.1 0.1-0.4 0.4-0.2 0.5-0.1 0.6-0.1 0.3-0.6 0.4-0.4 0.4-0.2 0.2-0.4 0.3-0.5 0.4-0.6 0.4-0.6 0.3-0.6 0.4-0.6 0.3-0.5 0.2-0.6 0.3-0.5 0.4-0.5 0.6-0.2 0.5-0.4 0.3-0.4 0.5-0.2 0.5 0 0.4-0.4 0.1-0.5 0.3-0.4 0.3-0.4 0.3-0.3 0-0.5 0-0.5 0-0.4 0.1-0.5 0.1-0.4 0.1-0.5-0.1-0.5 0.2-0.7 0.2-0.5 0.1-0.5 0.3-0.6 0.2-0.4 0.3-0.3 0.4-0.2 0.5-0.2 0.3-0.2 0.3-0.3 0.3-0.4 0.3-0.3 0.4-0.2 0.4-0.5 0.5-0.3 0.4 0.1 0.3-0.5 0.5-0.3 0.6-0.1 0.6 0.3 0.7-0.2 0.7-0.5 0.4-0.3 0.4-0.4 0.4-0.5 0.2-0.9-0.3-0.4 0.2-0.5 0.1-0.7 0.4-0.5 0.5-0.4 0.4 0 0.5 0.1 0.5 0 0.5-0.2 0.6 0.1 0.8-0.3 0.5 0 0.4-0.1 0.4-0.1 0.3-0.4 0.5-0.2 0.4-0.1 0.4-0.3 0.5-0.3 0.6-0.3 0.4-0.4 0.4-0.4 0.4-0.5 0.4-0.2 0.3-0.3 0.2-0.6 0.5-0.7 0.5-0.4 0.4-0.3 0.6 0 0.7 0 0.5 0 0.5 0 0.4 0.1 0.6 0.1 0.4-0.3 0-0.5-0.2-0.7 0.1-0.9 0.1-0.6-0.1-0.5 0.1-0.7 0.3-0.5 0.6-0.3 0.6-0.3 0.5-0.4 0.3-0.5 0.6-0.3 0.3-0.6 0.6-0.1 1.3 0 0.8 0 0.8 0 1.4 0 0.8 0 0.7 0.4 1.2 0.1 0.6 0 0.5 0.1 0.4 1.2-0.2 2.3 0 1.8-0.1 1.2 0 2.2 0 0.9 0 0.6 0.1 2.1 0 0.7 0.4 0.3 0.5 0 0.5 0 0.8-0.1 0.5-0.4 0.7-0.1 0.7 0.1 0.6 0.2 0.3-0.3 0.5-0.2 0.8-0.4 1.4 0.7 0.9 0.6 0.7 0.4 1.1 0.7 0.5 0.1 0.5 0.4 0.6 0.4 0.5 0.3 0.4 0.4-1.7 1.1-0.4 0.2-2 1.3-1.1 0.6 2.9-0.3 1.6-0.3 0.6-0.2 0.7-0.1 0.6-0.1 1-0.2 0.7-0.2 0.5-0.1 0.7-0.3 0.4-0.2 0.8-0.6-0.1-0.4-0.1-0.6 0.4-0.6 1.4-1.2 0.6 0 0.6 0.2 0.5 0.1 0.5 0.4 0.6-0.2 0.8 0 0.4 0.3-0.3 0.6-0.3 0.2-0.4 0.3-0.1 0.6 0.2 0.4 0.7 0.2 0.5 0.2 0.4 0.1 0.5-0.1 0.5 0.5 0.5 0 0.5-0.3 0.3 0.3 0.4 0.2 0.2-0.5 0.2-0.4 0.2-0.4-0.1-0.7-0.5-0.4-0.4-0.5 0.2-0.4 0.1-0.5 0.5-0.1 0.2-0.4 0.3-0.4 0-0.6 0.3-0.2 0.2-0.5-0.7-0.3-0.4-0.1-0.2-0.4-0.4 0-0.4-0.1-0.2-0.4-0.3-0.4-0.3-0.5-0.5-0.6-0.9-0.7-0.3-0.2-0.5-0.3-0.4-0.2-0.4-0.3-1.4-0.9-0.5-0.4-0.7-0.6 0.4-0.8 0.2-0.6 0.1-0.5 0.2-0.6 0.1-0.5 0.2-0.6 0-0.4 0.2-0.4 0.2-0.4 0.3-0.4 0.2-0.6 0.4-0.4 0.6-0.3 0.4-0.5 0.4 0.3 0.5 0.2 0.6 0 0.7 0.1 0.6 0 0.7 0 0.6 0 0.4 0.4 0.1 0.4 0.4 0.3 0.5-0.4 0.2-0.5 0.6-0.3-0.2-0.5 0-0.4 0-0.5 0.2-0.4 0.3 0.4 0.1 0.4 0.4 0.3 0.4-0.1 0-0.4 0-0.5 0.4 0.1 0.4-0.3-0.5-0.4 0-0.7 0.3-0.5 0.3-0.6-0.4-0.3 0.1-0.5-0.1-0.7 0.4-0.5 0.6-0.3 0.5 0 0.6-0.2 0.5 0 0.4 0 0.3-0.5 0.1-0.6 0.4-0.5 0.5-0.4 0.5-0.2 0.4 0 0.3-0.3 0.5-0.2 0.4-0.4 0.4 0 0.2-0.5-0.1-0.7 0.5-0.4 0.6 0 0.8-0.2 0.5-0.1 0.4-0.3 0.5 0 0.4-0.3 0.5-0.3 0.7 0.2 0.5-0.3 0.4-0.1 0.7 0 0.4-0.2 0.6-0.4 0.6-0.3 0.3-0.5 0.3-0.6 0.5-0.6 0-0.5 0.1-0.4 0.2-0.4 0-0.7 0.3-0.5 0.2-0.4 0-0.4 0.3-0.4 0.5 0 0.4-0.3 0.3-0.7-0.1-0.6-0.3-0.4-0.1-0.6 0.4-0.6 0.1-0.5 0.3 0.1 1 1.2 0.9 1 0.3 0.5 0.4 0.4 0.3 0.4 0.6 0.7 0.9 1.2 0.9 1.1 0.8 0.9 0.8 1 0.8 1 0.5 0.6 0.6 0.3 0.7 0.2 0.8 0.3 0.3 0.4 0.2 0.4 0.4 0.4 0.5 0.3 0.4 0.1 0.5-0.1 0.5 0 0.5-0.3 0.4-0.2 0.4-0.1 0.6-0.1 0.8-0.3 0.7-0.4 0.5 0 0.5-0.2 0.6 0 0.8 0.3 0.4 0.3 1.3 2.1 0.6 0.1 0.5 0 0.7 0 0.6 0.2 0.7 0.3 0.4 0.8 0.2 0.5 0.2 0.5 0.4 1.3 0.2 1 0.7 0.5 0.6-0.4 0.7 0 0.6-0.1 0.6 0.1 0.8 0.1 0.5 0.3 0.6 0.6 0.4 0.5 0.5 0.1 0.5-0.4 0.7-0.3 0.5-0.4 0.4-0.2 0.5-0.2 0.6-0.2 0.5 0 0.6-0.2 0.4-0.2 0.6-0.4 0.5-0.2 0.3-0.5 0.6-0.3 0.7 0 0.5 0.1 0.9 0.1 0.6 0.3 0.5 0.7 0.3 0.3 0.2 0.3 0.2 0.5 0.1 0.3 0.5 0.1 0.5 0.1 0.2 0.6-0.4 0.5-0.3 0.4-0.4 0.5-0.6 0.6-0.5 0.4-0.5 0.3-0.5 0.3-0.5 0.6-0.4 0.4 0 0.5-0.3 0.3-0.5 0.3-0.3 0.5-0.7 1.5-6.6 2.8-2.4 1 0 1 0.1 2.8 0 1.2 0 1.5-0.5 1.1-1 2.2-0.9 2-0.6 1.1-0.5-0.2-0.5-0.2-0.5-0.2-0.4 0-0.4 0.3-0.6 0.1-0.5 0.3-0.5 0-0.4 0.2-0.4 0.4-0.5 0.2-0.4 0-0.5 0.1-0.6 0.3-0.6 0.3-0.4 0.3-0.3 0.3-0.2 0.4-0.3 0.3-0.4 0.2-0.3 0.4-0.2 0.4-0.3 0.7-0.5 0.4-0.3 0.2-0.4 0.3-0.5 0.3-0.5 0.5-0.5 0.1-0.5 0.1-0.4 0.1-0.4-0.3-0.5 0.1-0.5 0.1-0.5 0.1-0.5 0.4-0.6 0.4-0.7 0.2-0.3 0.3-0.5 0.2-0.5 0.4-0.5 0.3-0.4 0.3-0.3 0.4-0.3 0.6-0.2 0.6-0.4 0.3-0.5 0.2-0.5 0.1-0.7 0.1-0.5 0.1-0.6 0.1-0.4-0.3-0.1-0.5-0.2-0.4-0.4-0.5-0.5-0.5-0.3-0.4-0.5-0.2 0.2-0.7 0.1-0.4-0.5-0.5-0.1-0.6-0.1-0.4-0.5 0.2-0.7 0-0.6 0.2-0.8 0.4-0.5 0.2-0.4 0.1-0.3 0.4-0.6 0.5-0.2 0.5-0.3 0.4-0.4 0.3-0.5 0.2-0.4-0.2-0.2-0.4 0-0.6 0.5-0.6 0.2-0.5-0.5-0.4-0.6 0.4-0.5 0.4-0.7 0.3-0.6 0.2-0.4 0.1-0.6 0.3-0.6 0.5-0.3 0.5-0.1 0.5-0.5 0.5-0.5 0.1-0.6 0.2-0.4 0.2-0.5 0.4-0.3 0.3-0.4 0.2-0.3 0.4-0.3 0.3-0.4 0.4-0.3 0.3 0.1 0.5-0.2 0.5-0.4 0.6-0.4 0.4-0.7 0.4-0.5 0.5-0.3 0.5-0.5 0.3-0.4 0.3-0.4 0.3-0.3 0.3-0.3 0.4-0.4 0.2-0.3 0.2-0.4 0.4-0.5 0.5-0.5 0.3-0.5 0.2-0.6 0.1-0.5 0-0.7-0.1-0.7 0.4-0.5 0.4-0.5 0.4-0.5 0.2-0.3 0.3-0.4 0.1-0.2 0.5-0.1 0.5-0.4 0.2-0.2 0.5 0.1 0.6-0.6 0.5-0.6 0-0.4 0.2-0.1 0.7-0.4 0.4-0.5 0.5-0.8 0.2-0.3 0.3-0.5 0.4-0.5 0.3-0.7 0.1-0.2 0.5 0 0.7-0.4 0.1-0.4 0.1-0.2 0.6-0.3 0.4-0.2 0.3 0.1 0.5 0 0.7-0.2 0.5-0.6-0.2-0.5-0.1-0.2 0.5-0.2 0.5-0.1 0.5 0.1 0.8-0.4 0.1-0.7-0.1-0.3 0.6-0.4 0.1-0.5 0.5 0 0.5 0 0.6 0.6 0.3 0.6 0.3 0.4 0.1 0.5 0.1 0.4-0.2 0.4-0.3 0.8-0.6 0.6-0.5 0.5-0.4 0.3-0.4 0.5-0.2 0.8-0.1 0.4-0.3 0.3-0.3 0.4-0.1 0.6-0.1 0.6 0.5 0.5-0.1 0.3-0.3 0.5 0.6 0.4 0.4 0.2 0.4 0.6 0.5 0 0.4-0.2 0.5-0.2 0.4-0.5 0.4-0.4 0.3 0.3 0.3 0.4 0.7 0.3 0.3 0.6 0.5 0.7 0.1 1.1 0.2 0.4-0.3 0.4-0.3 0.5-0.3 0.4-0.3 0.4-0.3 0.6 1.3 0.3 0.4 0.4 0.3 0.4 0.1 0.3-0.2 0.6-0.2 0.6 0.1 0.6-0.1 0.5 0.1 0.4 0.1 0.6-0.1 0.6 0.4 0.5 0.5 0 0.6-0.2 0.5-0.2 0.4-0.3 0.5-0.4 0.2-0.2 0.5-0.1 0.5 0.1 0.7-0.3 0.5-0.3 0.4-0.2 1.2-0.2 0.7 0 0.5-0.1 0.4-0.1 0.6-0.1 0.4-0.2 0.5-0.5 0.7-0.2 0.4-0.4 0.6-0.1 0.7 0.2 0.6-0.5 0.2-0.5 0.2-0.4 0.4-0.3 0.3-0.3 0.4 0 0.5-0.3 0.4-0.6 0.2-0.6-0.3-0.5-0.2-0.5-0.2-0.5 0.2-0.6-0.4-0.6-0.3-0.4 0.1-0.6-0.2-0.7 0-0.6-0.1-0.6 0.2-0.2 0.4-0.5 0.2-0.3 0.5-0.6 0.1-0.4 0.5 0 0.7-0.3 0.5-0.5 0.2-0.2 0.4-0.5-0.1-0.7 0-0.6 0.3-0.4 0.5-0.5 0-0.4 0.1-0.4 0.1-0.5 0-0.4 0.3-0.4 0.2-0.7 0.3-0.4 0-0.3 0.3 0.3 0.5 0.4 0.4 0.5-0.1 0.3 0.4 0.4 0 0.5-0.2 0.5 0.4 0.1 0.7-0.4 0.5-0.4 0.4-0.1 0.5 0.2 0.4 0.3 0.5 0.5 0.1 0.3 0.4-0.2 0.7 0.2 0.6 0.4 0.5 0.4-0.1 0.4 0.1-0.1 0.4 0.2 0.6 0.1 0.7 0.6-0.1 0.7 0.3 0.3 0.5-0.2 0.5-0.5 0.2-0.5 0.4-0.1 0.6 0.1 0.8-0.1 0.5-0.4 0.2-0.3 0.4 0.1 0.6 0 0.9 0.3 0.7 0.5 0.4 0.3 0.2-0.1 0.7 0.2 0.5-0.5 0.1-0.5 0.7 0.2 0.5-0.1 0.4-0.3 0.4-0.8 0.1-0.7 0.3-0.2 0.5-0.1 0.4 0 0.5 0.2 0.5-0.2 0.5-0.5-0.4-0.4 0.4-0.4 0-0.3 0.6-0.2 0.4-0.7 0.3 0 0.7-0.4 0.1-0.5-0.2-0.2 0.4-0.3 0.5 0.3 0.7 0.5 0.2-0.3 0.4-0.4 0.2-0.7 0.3-0.4 0.7-0.3 0.7-0.5 0.4-0.5 0.2-0.1 0.5 0 0.6-0.1 0.4-0.1 0.4 0.6 0.2 0.1 0.5-0.3 0.2-0.5 0.2-0.3 0.6 0.4 0.2 0.5 0.3 0.3 0.5 0 0.6 0.4 0 0.3 0.4 0.6 0.1 0.2 0.3 0.2 0.4 0.2 0.4 0.4 0.2 0.1 0.4-0.5 0-0.1 0.5 0.3 0.5 0 0.4 0 0.5-0.2 0.6 0 0.5 0 0.9-0.4 0.6-0.1 0.4 0.2 0.7-0.2 0.5 0 0.5-0.2 0.5z" id="GHAF" name="Ahafo">
       </path>
@@ -115,31 +504,70 @@
       <circle class="Western North" cx="253" cy="746.3" id="GHWN">
       </circle>
      </g>
-    </svg>      </div>
-    </div>
-  </div>
+    </svg>         </div>
+      </section>
 
-  <!-- Snackbar for feedback messages -->
+      <!-- Right Panel: Search Controls & Results -->
+      <section class="control-section">
+        <div class="search-controls card">
+          <div class="card-header">
+            <h2><span class="material-icons">search</span> Find Hospitals</h2>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label for="city-select">Select a City:</label>
+              <select id="city-select" class="form-control">
+                <option value="">Choose a city...</option>
+                <!-- Cities will be dynamically loaded -->
+              </select>
+            </div>
+            <input type="hidden" id="manual-location" />
+            <button id="find-hospitals" class="btn primary-btn" disabled>
+              <span class="material-icons">local_hospital</span> Find Nearest Hospitals
+            </button>
+          </div>
+        </div>
+
+        <div id="hospital-results" class="results-container card">
+          <!-- Hospital results will be displayed here -->
+          <div class="empty-state">
+            <span class="material-icons">health_and_safety</span>
+            <p>Select a region and city to find hospitals</p>
+          </div>
+        </div>
+
+        <button id="save-info-button" class="btn confirm-btn" disabled>
+          <span class="material-icons">save</span> Save Selection & Continue
+        </button>
+      </section>
+    </main>
+
+
+
   <div id="snackbar"></div>
-  <script type="text/javascript">
-        function checkForMessage() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('status') && params.has('message')) {
-                const message = params.get('message');
-                const status = params.get('status');
-                showSnackbar(message, status);
-            }
-        }
 
-        function showSnackbar(message, type) {
-            let snackbar = document.getElementById("snackbar");
-            snackbar.innerHTML = message;
-            snackbar.className = "show " + type;
-            setTimeout(() => {
-                snackbar.className = snackbar.className.replace("show", "");
-            }, 3000);
-        }
-    </script>
+  <script type="text/javascript">
+    function checkForMessage() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('status') && params.has('message')) {
+        const message = params.get('message');
+        const status = params.get('status');
+        showSnackbar(message, status);
+      }
+    }
+
+    function showSnackbar(message, type) {
+      let snackbar = document.getElementById("snackbar");
+      snackbar.innerHTML = message;
+      snackbar.className = "show " + type;
+      setTimeout(() => {
+        snackbar.className = snackbar.className.replace("show", "");
+      }, 3000);
+    }
+
+    // Call on page load
+    window.addEventListener('DOMContentLoaded', checkForMessage);
+  </script>
   
   <script src="../public/js/map.js"></script>
 </body>

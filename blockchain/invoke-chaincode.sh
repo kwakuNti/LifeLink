@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# invoke-chaincode.sh - Supports both CreateMedicalInfo and CreateMatch
 # Create a log file for tracking execution
 LOG_FILE="/tmp/fabric_invoke_$(date +%s).log"
 echo "=== BLOCKCHAIN INVOKE SCRIPT LOG ===" > $LOG_FILE
@@ -14,17 +14,15 @@ if [ -z "$PEER_CMD" ]; then
 else
     echo "Found peer command at: $PEER_CMD" >> $LOG_FILE
 fi
-
-# Log the PATH variable
 echo "PATH: $PATH" >> $LOG_FILE
 
 # Set required environment variables
-export FABRIC_CFG_PATH=/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/config
+export FABRIC_CFG_PATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/config"
 export CORE_PEER_TLS_ENABLED=true
 export CORE_PEER_LOCALMSPID="Org1MSP"
-export CORE_PEER_TLS_ROOTCERT_FILE=/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
-export CORE_PEER_MSPCONFIGPATH=/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
-export CORE_PEER_ADDRESS=localhost:7051
+export CORE_PEER_TLS_ROOTCERT_FILE="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+export CORE_PEER_MSPCONFIGPATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+export CORE_PEER_ADDRESS="localhost:7051"
 
 # Log environment variables
 echo "Environment variables set:" >> $LOG_FILE
@@ -34,35 +32,6 @@ echo "CORE_PEER_LOCALMSPID: $CORE_PEER_LOCALMSPID" >> $LOG_FILE
 echo "CORE_PEER_TLS_ROOTCERT_FILE: $CORE_PEER_TLS_ROOTCERT_FILE" >> $LOG_FILE
 echo "CORE_PEER_MSPCONFIGPATH: $CORE_PEER_MSPCONFIGPATH" >> $LOG_FILE
 echo "CORE_PEER_ADDRESS: $CORE_PEER_ADDRESS" >> $LOG_FILE
-
-# Parameters from PHP
-USER_ID=$1
-BLOOD_TYPE=$2
-INIT_AGE=$3
-BMI_TCR=$4
-DAYSWAIT_ALLOC=$5
-KIDNEY_CLUSTER=$6
-DGN_TCR=$7
-WGT_KG_TCR=$8
-HGT_CM_TCR=$9
-GFR=${10}
-ON_DIALYSIS=${11}
-FILE_REF=${12}
-
-# Log parameters received
-echo "Parameters received:" >> $LOG_FILE
-echo "USER_ID: $USER_ID" >> $LOG_FILE
-echo "BLOOD_TYPE: $BLOOD_TYPE" >> $LOG_FILE
-echo "INIT_AGE: $INIT_AGE" >> $LOG_FILE
-echo "BMI_TCR: $BMI_TCR" >> $LOG_FILE
-echo "DAYSWAIT_ALLOC: $DAYSWAIT_ALLOC" >> $LOG_FILE
-echo "KIDNEY_CLUSTER: $KIDNEY_CLUSTER" >> $LOG_FILE
-echo "DGN_TCR: $DGN_TCR" >> $LOG_FILE
-echo "WGT_KG_TCR: $WGT_KG_TCR" >> $LOG_FILE
-echo "HGT_CM_TCR: $HGT_CM_TCR" >> $LOG_FILE
-echo "GFR: $GFR" >> $LOG_FILE
-echo "ON_DIALYSIS: $ON_DIALYSIS" >> $LOG_FILE
-echo "FILE_REF: $FILE_REF" >> $LOG_FILE
 
 # Define certificate paths
 ORDERER_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem"
@@ -78,7 +47,6 @@ for cert_file in "$ORDERER_CA" "$ORG1_CA" "$ORG2_CA"; do
             echo "✅ File is readable: $cert_file" >> $LOG_FILE
         else
             echo "❌ File is NOT readable: $cert_file" >> $LOG_FILE
-            # Try to fix permissions
             chmod 644 "$cert_file" 2>> $LOG_FILE
             echo "Attempted to fix permissions" >> $LOG_FILE
         fi
@@ -87,8 +55,67 @@ for cert_file in "$ORDERER_CA" "$ORG1_CA" "$ORG2_CA"; do
     fi
 done
 
-# Create JSON args with proper escaping
-JSON_ARGS=$(echo "{\"Args\":[\"CreateMedicalInfo\", \"$USER_ID\", \"$BLOOD_TYPE\", \"$INIT_AGE\", \"$BMI_TCR\", \"$DAYSWAIT_ALLOC\", \"$KIDNEY_CLUSTER\", \"$DGN_TCR\", \"$WGT_KG_TCR\", \"$HGT_CM_TCR\", \"$GFR\", \"$ON_DIALYSIS\", \"$FILE_REF\"]}")
+#######################
+# Build JSON arguments:
+#######################
+
+# The script now supports two modes, based on the first parameter:
+# If the first parameter is "CreateMatch", then shift the parameters and use those.
+# Otherwise, default to CreateMedicalInfo.
+
+FUNCTION=$1
+shift
+
+if [ "$FUNCTION" == "CreateMatch" ]; then
+    # Expected parameters for CreateMatch:
+    # MATCH_ID, DONOR_ID, RECIPIENT_ID, MATCH_SCORE, STATUS
+    MATCH_ID=$1
+    DONOR_ID=$2
+    RECIPIENT_ID=$3
+    MATCH_SCORE=$4
+    STATUS=$5
+
+    echo "Selected function: CreateMatch" >> $LOG_FILE
+    echo "MATCH_ID: $MATCH_ID" >> $LOG_FILE
+    echo "DONOR_ID: $DONOR_ID" >> $LOG_FILE
+    echo "RECIPIENT_ID: $RECIPIENT_ID" >> $LOG_FILE
+    echo "MATCH_SCORE: $MATCH_SCORE" >> $LOG_FILE
+    echo "STATUS: $STATUS" >> $LOG_FILE
+
+    JSON_ARGS=$(echo "{\"Args\":[\"CreateMatch\", \"$MATCH_ID\", \"$DONOR_ID\", \"$RECIPIENT_ID\", \"$MATCH_SCORE\", \"$STATUS\"]}")
+else
+    # Default function is CreateMedicalInfo.
+    # Expected parameters: USER_ID, BLOOD_TYPE, INIT_AGE, BMI_TCR, DAYSWAIT_ALLOC, KIDNEY_CLUSTER, DGN_TCR, WGT_KG_TCR, HGT_CM_TCR, GFR, ON_DIALYSIS, FILE_REF
+    USER_ID=$1
+    BLOOD_TYPE=$2
+    INIT_AGE=$3
+    BMI_TCR=$4
+    DAYSWAIT_ALLOC=$5
+    KIDNEY_CLUSTER=$6
+    DGN_TCR=$7
+    WGT_KG_TCR=$8
+    HGT_CM_TCR=$9
+    GFR=${10}
+    ON_DIALYSIS=${11}
+    FILE_REF=${12}
+
+    echo "Selected function: CreateMedicalInfo" >> $LOG_FILE
+    echo "USER_ID: $USER_ID" >> $LOG_FILE
+    echo "BLOOD_TYPE: $BLOOD_TYPE" >> $LOG_FILE
+    echo "INIT_AGE: $INIT_AGE" >> $LOG_FILE
+    echo "BMI_TCR: $BMI_TCR" >> $LOG_FILE
+    echo "DAYSWAIT_ALLOC: $DAYSWAIT_ALLOC" >> $LOG_FILE
+    echo "KIDNEY_CLUSTER: $KIDNEY_CLUSTER" >> $LOG_FILE
+    echo "DGN_TCR: $DGN_TCR" >> $LOG_FILE
+    echo "WGT_KG_TCR: $WGT_KG_TCR" >> $LOG_FILE
+    echo "HGT_CM_TCR: $HGT_CM_TCR" >> $LOG_FILE
+    echo "GFR: $GFR" >> $LOG_FILE
+    echo "ON_DIALYSIS: $ON_DIALYSIS" >> $LOG_FILE
+    echo "FILE_REF: $FILE_REF" >> $LOG_FILE
+
+    JSON_ARGS=$(echo "{\"Args\":[\"CreateMedicalInfo\", \"$USER_ID\", \"$BLOOD_TYPE\", \"$INIT_AGE\", \"$BMI_TCR\", \"$DAYSWAIT_ALLOC\", \"$KIDNEY_CLUSTER\", \"$DGN_TCR\", \"$WGT_KG_TCR\", \"$HGT_CM_TCR\", \"$GFR\", \"$ON_DIALYSIS\", \"$FILE_REF\"]}")
+fi
+
 echo "JSON Arguments: $JSON_ARGS" >> $LOG_FILE
 
 # Construct full command
@@ -104,11 +131,8 @@ EXIT_CODE=$?
 echo "Command output: $OUTPUT" >> $LOG_FILE
 echo "Exit code: $EXIT_CODE" >> $LOG_FILE
 
-# If the command failed, try to diagnose why
 if [ $EXIT_CODE -ne 0 ]; then
     echo "Command failed. Attempting diagnostics..." >> $LOG_FILE
-    
-    # Check if peer binary exists and is executable
     if [ ! -f "$PEER_CMD" ]; then
         echo "❌ peer binary not found at $PEER_CMD" >> $LOG_FILE
     elif [ ! -x "$PEER_CMD" ]; then
@@ -116,18 +140,14 @@ if [ $EXIT_CODE -ne 0 ]; then
     else
         echo "✅ peer binary exists and is executable" >> $LOG_FILE
     fi
-    
-    # Check network connectivity to peers
     echo "Testing network connectivity:" >> $LOG_FILE
     nc -zv localhost 7050 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to orderer at localhost:7050" >> $LOG_FILE
     nc -zv localhost 7051 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to peer0.org1 at localhost:7051" >> $LOG_FILE
     nc -zv localhost 9051 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to peer0.org2 at localhost:9051" >> $LOG_FILE
-    
-    # Try a simpler peer command to see if basic connectivity works
     echo "Testing basic peer command:" >> $LOG_FILE
     $PEER_CMD channel list >> $LOG_FILE 2>&1
 fi
 
 echo "Log file created at: $LOG_FILE" >&2
-echo $OUTPUT
+echo "$OUTPUT"
 exit $EXIT_CODE

@@ -152,7 +152,7 @@ file_put_contents($logFile, "Peer binary location: " . exec('which peer 2>&1') .
 file_put_contents($logFile, "PHP Server variables: " . print_r($_SERVER, true) . "\n", FILE_APPEND);
 
 // Construct command with arguments and add full path
-$cmd = escapeshellcmd($scriptPath) . " " . 
+$cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg("CreateMedicalInfo") . " " .
        escapeshellarg($userId) . " " . 
        escapeshellarg($bloodType) . " " . 
        escapeshellarg($initAge) . " " . 

@@ -7,6 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 import os
 import mysql.connector
 from mysql.connector import Error
+import subprocess  # Add this line
 
 app = Flask(__name__)
 CORS(app)
@@ -465,7 +466,35 @@ def api_confirm_match():
         match_id = cursor.lastrowid
         cursor.close()
         connection.close()
-        return jsonify({'message': 'Match confirmed', 'match_id': match_id})
+        # Prepare to invoke the chaincode function CreateMatch on the blockchain
+        # Construct a unique match identifier for the blockchain (e.g., "match_{match_id}")
+        blockchain_match_id = f"match_{match_id}"
+
+        # Define the path to your bash script (adjust the path if necessary)
+        bash_script = "/Applications/MAMP/htdocs/Lifelink/blockchain/invoke-chaincode.sh"
+        # We'll call the function "CreateMatch" with:
+        #   blockchain_match_id, donor_id, recipient_id, match_score, status
+        cmd = [
+            bash_script,
+            "CreateMatch",
+            blockchain_match_id,
+            str(donor_id),
+            str(recipient_id),
+            str(match_score),
+            status
+        ]
+
+        # Log and execute the command
+        try:
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            # Optionally, you can decode and log the output:
+            blockchain_response = output.decode()
+            print("Blockchain invoke output:", blockchain_response)
+        except subprocess.CalledProcessError as e:
+            print("Blockchain invoke failed:", e.output.decode())
+            return jsonify({'error': 'Match recorded in SQL, but failed to record on blockchain', 'blockchain_error': e.output.decode()}), 500
+
+        return jsonify({'message': 'Match confirmed on blockchain', 'match_id': match_id})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

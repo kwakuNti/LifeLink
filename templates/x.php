@@ -1,6 +1,7 @@
+//x.php
 <?php
 session_start();
-include '../config/connection.php';
+include_once '../config/connection.php';
 include '../includes/functions.php';
 
 // Check if user is logged in
@@ -9,45 +10,52 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Default to the logged-in user ID unless another ID is specified
+// Default to the logged-in user ID for donor query, unless a donor_id is specified.
 $donorId = isset($_GET['donor_id']) ? $_GET['donor_id'] : $_SESSION['user_id'];
+// Optionally, check for a match_id parameter.
+$matchId = isset($_GET['match_id']) ? $_GET['match_id'] : null;
 
-// Create log file for debugging
+// Create a log file for debugging.
 $logFile = "/tmp/blockchain_query_" . time() . ".log";
 file_put_contents($logFile, "=== LIFELINK BLOCKCHAIN QUERY DEBUG LOG ===\n");
 file_put_contents($logFile, "Timestamp: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-file_put_contents($logFile, "Querying for Donor ID: " . $donorId . "\n\n", FILE_APPEND);
+if ($matchId) {
+    file_put_contents($logFile, "Querying for Match ID: " . $matchId . "\n\n", FILE_APPEND);
+} else {
+    file_put_contents($logFile, "Querying for Donor ID: " . $donorId . "\n\n", FILE_APPEND);
+}
 
-// Path to the query script (update if needed)
+// Path to the query script.
 $scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
 
-// Check if script exists and is executable
+// Check if the script exists and is executable.
 if (!file_exists($scriptPath)) {
     file_put_contents($logFile, "ERROR: Script file does not exist at: $scriptPath\n", FILE_APPEND);
     $error = "Query script not found.";
 } else {
-    // Make script executable if not already
     if (!is_executable($scriptPath)) {
         chmod($scriptPath, 0755);
     }
-
-    // Create command to execute with proper escaping
-    $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($donorId);
+    
+    // Construct the command.
+    if ($matchId) {
+        $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg("ReadMatch") . " " . escapeshellarg($matchId);
+    } else {
+        $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($donorId);
+    }
     file_put_contents($logFile, "Command: $cmd\n", FILE_APPEND);
 
-    // Execute the command and capture output
+    // Execute the command.
     $output = [];
     $return_var = 0;
     exec($cmd . " 2>&1", $output, $return_var);
 
-    // Log results
+    // Log results.
     file_put_contents($logFile, "Return code: $return_var\n", FILE_APPEND);
     file_put_contents($logFile, "Output: " . print_r($output, true) . "\n", FILE_APPEND);
 
     if ($return_var === 0 && !empty($output)) {
-        // Attempt to extract the JSON response (in case there is extra logging)
         $jsonResponse = implode("", $output);
-        // Use regex to extract JSON (anything between a first { and last })
         if (preg_match('/\{.*\}/s', $jsonResponse, $matches)) {
             $cleanedJson = $matches[0];
             file_put_contents($logFile, "Extracted JSON: " . $cleanedJson . "\n", FILE_APPEND);
@@ -69,7 +77,6 @@ if (!file_exists($scriptPath)) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,78 +92,117 @@ if (!file_exists($scriptPath)) {
 </head>
 <body>
     <div class="container">
-        <h1>Blockchain Medical Information</h1>
-        
+        <h1>Blockchain Query Result</h1>
         <?php if (isset($error)): ?>
             <div class="alert alert-danger">
                 <?php echo htmlspecialchars($error); ?>
             </div>
         <?php elseif (isset($queryResult)): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h2>Donor ID: <?php echo htmlspecialchars($queryResult['donorID'] ?? 'N/A'); ?></h2>
+            <?php if (isset($queryResult['donorID'])): ?>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Donor Medical Information (ID: <?php echo htmlspecialchars($queryResult['donorID']); ?>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th>Blood Type:</th>
+                                <td><?php echo htmlspecialchars($queryResult['bloodType'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Age:</th>
+                                <td><?php echo htmlspecialchars($queryResult['init_age'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>BMI:</th>
+                                <td><?php echo htmlspecialchars($queryResult['bmi_tcr'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Days on Waiting List:</th>
+                                <td><?php echo htmlspecialchars($queryResult['dayswait_alloc'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Kidney Cluster:</th>
+                                <td><?php echo htmlspecialchars($queryResult['kidney_cluster'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Diagnosis Code:</th>
+                                <td><?php echo htmlspecialchars($queryResult['dgn_tcr'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Weight (kg):</th>
+                                <td><?php echo htmlspecialchars($queryResult['wgt_kg_tcr'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Height (cm):</th>
+                                <td><?php echo htmlspecialchars($queryResult['hgt_cm_tcr'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>GFR:</th>
+                                <td><?php echo htmlspecialchars($queryResult['gfr'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>On Dialysis:</th>
+                                <td><?php echo (isset($queryResult['on_dialysis']) && intval($queryResult['on_dialysis']) === 1) ? 'Yes' : 'No'; ?></td>
+                            </tr>
+                            <tr>
+                                <th>File Reference:</th>
+                                <td><?php echo htmlspecialchars($queryResult['fileReference'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Recorded On:</th>
+                                <td>
+                                    <?php 
+                                    if (isset($queryResult['timestamp'])) {
+                                        echo date('Y-m-d H:i:s', intval($queryResult['timestamp']));
+                                    } else {
+                                        echo 'N/A';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="table">
-                        <tr>
-                            <th>Blood Type:</th>
-                            <td><?php echo htmlspecialchars($queryResult['bloodType'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Age:</th>
-                            <td><?php echo htmlspecialchars($queryResult['init_age'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>BMI:</th>
-                            <td><?php echo htmlspecialchars($queryResult['bmi_tcr'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Days on Waiting List:</th>
-                            <td><?php echo htmlspecialchars($queryResult['dayswait_alloc'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Kidney Cluster:</th>
-                            <td><?php echo htmlspecialchars($queryResult['kidney_cluster'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Diagnosis Code:</th>
-                            <td><?php echo htmlspecialchars($queryResult['dgn_tcr'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Weight (kg):</th>
-                            <td><?php echo htmlspecialchars($queryResult['wgt_kg_tcr'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Height (cm):</th>
-                            <td><?php echo htmlspecialchars($queryResult['hgt_cm_tcr'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>GFR:</th>
-                            <td><?php echo htmlspecialchars($queryResult['gfr'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>On Dialysis:</th>
-                            <td><?php echo (isset($queryResult['on_dialysis']) && intval($queryResult['on_dialysis']) === 1) ? 'Yes' : 'No'; ?></td>
-                        </tr>
-                        <tr>
-                            <th>File Reference:</th>
-                            <td><?php echo htmlspecialchars($queryResult['fileReference'] ?? 'N/A'); ?></td>
-                        </tr>
-                        <tr>
-                            <th>Recorded On:</th>
-                            <td>
-                                <?php 
-                                if (isset($queryResult['timestamp'])) {
-                                    echo date('Y-m-d H:i:s', intval($queryResult['timestamp']));
-                                } else {
-                                    echo 'N/A';
-                                }
-                                ?>
-                            </td>
-                        </tr>
-                    </table>
+            <?php elseif (isset($queryResult['matchID'])): ?>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Match Record (ID: <?php echo htmlspecialchars($queryResult['matchID']); ?>)</h2>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th>Donor ID:</th>
+                                <td><?php echo htmlspecialchars($queryResult['donorID'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Recipient ID:</th>
+                                <td><?php echo htmlspecialchars($queryResult['recipientID'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Match Score:</th>
+                                <td><?php echo htmlspecialchars($queryResult['matchScore'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td><?php echo htmlspecialchars($queryResult['status'] ?? 'N/A'); ?></td>
+                            </tr>
+                            <tr>
+                                <th>Recorded On:</th>
+                                <td>
+                                    <?php 
+                                    if (isset($queryResult['timestamp'])) {
+                                        echo date('Y-m-d H:i:s', intval($queryResult['timestamp']));
+                                    } else {
+                                        echo 'N/A';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
             
             <div class="mt-4">
                 <h3>Raw Blockchain Data</h3>
@@ -164,7 +210,7 @@ if (!file_exists($scriptPath)) {
             </div>
         <?php else: ?>
             <div class="alert alert-warning">
-                No data found for this donor.
+                No data found.
             </div>
         <?php endif; ?>
         

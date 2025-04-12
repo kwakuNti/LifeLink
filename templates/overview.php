@@ -108,6 +108,104 @@ $stats_stmt->close();
 function generatePatientCode($recipient_id) {
     return 'P-' . substr(md5($recipient_id), 0, 6);
 }
+
+// Add this function near the top of your file, after the other database queries
+// Function to get blockchain data for this donor
+function getBlockchainData($donorId) {
+    $scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
+    
+    if (!file_exists($scriptPath)) {
+        return ["error" => "Query script not found."];
+    }
+    
+    if (!is_executable($scriptPath)) {
+        chmod($scriptPath, 0755);
+    }
+    
+    // Query for donor data on blockchain
+    $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($donorId);
+    $output = [];
+    $return_var = 0;
+    exec($cmd . " 2>&1", $output, $return_var);
+    
+    // Debug: log the raw output for troubleshooting
+    file_put_contents("/tmp/blockchain_debug.log", "CMD: " . $cmd . "\nOutput: " . print_r($output, true) . "\nReturn code: $return_var\n", FILE_APPEND);
+    
+    if ($return_var === 0 && !empty($output)) {
+        $jsonResponse = implode("", $output);
+        if (preg_match('/\{.*\}/s', $jsonResponse, $matches)) {
+            $cleanedJson = $matches[0];
+            $data = json_decode($cleanedJson, true);
+        } else {
+            $data = json_decode($jsonResponse, true);
+        }
+        
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $data;
+        }
+    }
+    
+    return ["error" => "Could not retrieve blockchain data."];
+}
+
+
+// Get blockchain data for this donor
+$blockchainData = getBlockchainData($donor_id);
+
+// Also get match data from blockchain if available
+// Replace the current matchesBlockchainData retrieval code with this:
+$matchesBlockchainData = [];
+if (!empty($recent_matches)) {
+  foreach ($recent_matches as $match) {
+      if (isset($match['id'])) {
+          $matchId = "match_" . $match['id'];
+          
+          // Log the query for debugging
+          file_put_contents("/tmp/overviewx_debug.log", "Querying for match ID: $matchId\n", FILE_APPEND);
+          
+          $scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
+          if (!file_exists($scriptPath)) {
+              file_put_contents("/tmp/overviewx_debug.log", "Script not found: $scriptPath\n", FILE_APPEND);
+              continue;
+          }
+          
+          if (!is_executable($scriptPath)) {
+              chmod($scriptPath, 0755);
+          }
+          
+          // Use the same command format as in query-blockchain.php
+          $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg("ReadMatch") . " " . escapeshellarg($matchId);
+          file_put_contents("/tmp/overviewx_debug.log", "Command: $cmd\n", FILE_APPEND);
+          
+          $output = [];
+          $return_var = 0;
+          exec($cmd . " 2>&1", $output, $return_var);
+          
+          file_put_contents("/tmp/overviewx_debug.log", "Return code: $return_var\n", FILE_APPEND);
+          file_put_contents("/tmp/overviewx_debug.log", "Output: " . print_r($output, true) . "\n", FILE_APPEND);
+          
+          if ($return_var === 0 && !empty($output)) {
+              $jsonResponse = implode("", $output);
+              if (preg_match('/\{.*\}/s', $jsonResponse, $matches)) {
+                  $cleanedJson = $matches[0];
+                  file_put_contents("/tmp/overviewx_debug.log", "Extracted JSON: " . $cleanedJson . "\n", FILE_APPEND);
+                  $matchData = json_decode($cleanedJson, true);
+              } else {
+                  $matchData = json_decode($jsonResponse, true);
+              }
+              
+              if (json_last_error() === JSON_ERROR_NONE) {
+                  $matchesBlockchainData[] = $matchData;
+                  file_put_contents("/tmp/overviewx_debug.log", "Successfully parsed JSON data.\n", FILE_APPEND);
+              } else {
+                  file_put_contents("/tmp/overviewx_debug.log", "JSON parse error: " . json_last_error_msg() . "\n", FILE_APPEND);
+              }
+          } else {
+              file_put_contents("/tmp/overviewx_debug.log", "Query failed with return code: $return_var\n", FILE_APPEND);
+          }
+      }
+  }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -555,19 +653,17 @@ p {
 }
 
 /* Blockchain Section */
+/* Add these styles to the existing CSS in your page */
+
+/* Enhanced Blockchain Section */
 .blockchain-section {
-  background: linear-gradient(135deg, var(--primary-light), white);
+  background: linear-gradient(135deg, #EDF2FF 0%, #ffffff 100%);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   margin-top: var(--spacing-lg);
   position: relative;
   overflow: hidden;
-}
-.blockchain-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
 }
 .blockchain-logo {
   width: 40px;
@@ -591,34 +687,318 @@ p {
   height: 150px;
   opacity: 0.05;
 }
-.blockchain-records {
+.blockchain-section h4 {
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  color: var(--primary);
+  font-size: 1.1rem;
   position: relative;
-  z-index: 1;
+  display: inline-block;
 }
-.blockchain-record {
-  background: rgba(255, 255, 255, 0.9);
+
+.blockchain-section h4::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background-color: var(--primary);
+}
+
+.blockchain-message {
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+/* Blockchain Card for Donor */
+.blockchain-card {
+  background: white;
   border-radius: var(--radius-sm);
   padding: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: var(--spacing-md);
+  border-left: 4px solid var(--primary);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.blockchain-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.blockchain-card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  transition: var(--transition-base);
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--gray-200);
 }
-.blockchain-record:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
-.blockchain-record-id {
-  font-family: monospace;
+
+.blockchain-card-title {
+  font-weight: 600;
   color: var(--primary);
-  font-weight: 500;
 }
+
 .blockchain-timestamp {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--gray-500);
 }
 
+.blockchain-visualization {
+  padding: var(--spacing-sm) 0;
+}
+
+.donor-blockchain-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+}
+
+.blockchain-stat {
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  text-align: center;
+  position: relative;
+}
+
+.blockchain-stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.blockchain-stat-label {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.blockchain-buttons {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.blockchain-view-btn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--primary);
+  color: white;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.blockchain-view-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* Blockchain Matches */
+.blockchain-match-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.blockchain-match-card {
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.blockchain-match-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.blockchain-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.blockchain-match-id {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--primary);
+}
+
+.blockchain-match-score {
+  font-weight: 600;
+  background: rgba(52, 168, 83, 0.1);
+  color: var(--success);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.blockchain-match-pair {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+}
+
+.blockchain-donor, .blockchain-recipient {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.blockchain-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.blockchain-avatar.donor {
+  background-color: var(--primary);
+  color: white;
+}
+
+.blockchain-avatar.recipient {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.blockchain-id {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+.blockchain-match-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--gray-200);
+}
+
+.blockchain-match-status {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.blockchain-match-status.completed {
+  background: rgba(52, 168, 83, 0.1);
+  color: var(--success);
+}
+
+.blockchain-match-status.pending {
+  background: rgba(251, 188, 5, 0.1);
+  color: var(--warning);
+}
+
+.blockchain-match-status.processing {
+  background: rgba(64, 112, 224, 0.1);
+  color: var(--primary);
+}
+
+.blockchain-view-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.blockchain-view-link:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.blockchain-verification {
+  margin-top: var(--spacing-md);
+  background: rgba(64, 112, 224, 0.05);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+}
+
+.blockchain-info {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.blockchain-info svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.blockchain-info p {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  color: var(--gray-500);
+}
+
+.blockchain-no-matches {
+  background: rgba(255, 255, 255, 0.7);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  color: var(--gray-500);
+}
+
+@media (max-width: 768px) {
+  .blockchain-match-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .donor-blockchain-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .blockchain-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .blockchain-match-pair {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .blockchain-connector {
+    transform: rotate(90deg);
+    margin: 8px 0;
+  }
+  
+  .blockchain-match-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}
 /* Animation */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
@@ -923,20 +1303,136 @@ p {
       </div>
       
       <!-- Blockchain Integration Section (Placeholder) -->
-      <div class="card blockchain-section animated-fade-in animation-delay-5">
-        <div class="blockchain-header">
-          <div class="blockchain-logo">
+      <!-- Below is the HTML for the blockchain section -->
+<div class="card blockchain-section animated-fade-in animation-delay-5">
+    <div class="blockchain-header">
+        <div class="blockchain-logo pulse-animation">
             <svg viewBox="0 0 24 24">
-              <path d="M12 0L7 4h4v8h2V4h4l-5-4zm5 6v2h-3v2h3v2l4-3-4-3zm-10 4l-4 3 4 3v-2h3v-2H7v-2zm10 4v2h-4l5 4 5-4h-4v-2h-2zm-2 4H7l5 4 5-4h-7z"/>
+                <path d="M12 0L7 4h4v8h2V4h4l-5-4zm5 6v2h-3v2h3v2l4-3-4-3zm-10 4l-4 3 4 3v-2h3v-2H7v-2zm10 4v2h-4l5 4 5-4h-4v-2h-2zm-2 4H7l5 4 5-4h-7z"/>
             </svg>
-          </div>
-          <h3>Blockchain Verification</h3>
         </div>
-        <p class="blockchain-records">All transplant records will be securely stored on the blockchain. This section will show transaction hashes once integrated.</p>
-        <svg class="blockchain-icon-bg" viewBox="0 0 24 24">
-          <path d="M12 0L7 4h4v8h2V4h4l-5-4zm5 6v2h-3v2h3v2l4-3-4-3zm-10 4l-4 3 4 3v-2h3v-2H7v-2zm10 4v2h-4l5 4 5-4h-4v-2h-2zm-2 4H7l5 4 5-4h-7z"/>
-        </svg>
-      </div>
+        <h3>Blockchain Verification</h3>
+    </div>
+    
+    <?php if (isset($blockchainData['error'])): ?>
+        <p class="blockchain-message">Blockchain data not currently available. Please try again later.</p>
+    <?php else: ?>
+        <!-- Donor Information from Blockchain -->
+        <div class="blockchain-donor-info">
+            <h4>Your Medical Profile on Blockchain</h4>
+            <div class="blockchain-card">
+                <div class="blockchain-card-header">
+                    <div class="blockchain-card-title">Donor ID: <?php echo htmlspecialchars($blockchainData['donorID'] ?? 'N/A'); ?></div>
+                    <div class="blockchain-timestamp">
+                        <?php if (isset($blockchainData['timestamp'])): ?>
+                            Recorded: <?php echo date('Y-m-d H:i', intval($blockchainData['timestamp'])); ?>
+                        <?php else: ?>
+                            Timestamp not available
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="blockchain-visualization">
+                    <div class="donor-blockchain-stats">
+                        <div class="blockchain-stat">
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['bloodType'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-label">Blood Type</div>
+                        </div>
+                        <?php if (isset($blockchainData['kidney_cluster'])): ?>
+                        <div class="blockchain-stat">
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['kidney_cluster'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-label">Kidney Cluster</div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (isset($blockchainData['gfr'])): ?>
+                        <div class="blockchain-stat">
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['gfr'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-label">GFR</div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (isset($blockchainData['bmi_tcr'])): ?>
+                        <div class="blockchain-stat">
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['bmi_tcr'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-label">BMI</div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="blockchain-buttons">
+                    <a href="../blockchain/view_blockchain.php?donor_id=<?php echo $donor_id; ?>" class="blockchain-view-btn">View Complete Profile</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Match Information from Blockchain -->
+        <?php if (!empty($matchesBlockchainData)): ?>
+            <div class="blockchain-matches">
+                <h4>Match Records on Blockchain</h4>
+                <div class="blockchain-match-container">
+                    <?php foreach ($matchesBlockchainData as $index => $matchData): ?>
+                        <div class="blockchain-match-card animation-delay-<?php echo ($index % 5) + 1; ?>">
+                            <div class="blockchain-match-header">
+                                <div class="blockchain-match-id">Match ID: <?php echo htmlspecialchars($matchData['matchID'] ?? 'N/A'); ?></div>
+                                <div class="blockchain-match-score"><?php echo htmlspecialchars($matchData['matchScore'] ?? 'N/A'); ?>% Match</div>
+                            </div>
+                            
+                            <div class="blockchain-match-pair">
+                                <div class="blockchain-donor">
+                                    <div class="blockchain-avatar donor">D</div>
+                                    <div class="blockchain-id"><?php echo htmlspecialchars($matchData['donorID'] ?? 'N/A'); ?></div>
+                                </div>
+                                
+                                <div class="blockchain-connector">
+                                    <svg width="40" height="15">
+                                        <line x1="0" y1="7.5" x2="40" y2="7.5" stroke="#4070E0" stroke-width="2"/>
+                                        <polygon points="40,7.5 35,5 35,10" fill="#4070E0"/>
+                                    </svg>
+                                </div>
+                                
+                                <div class="blockchain-recipient">
+                                    <div class="blockchain-avatar recipient">R</div>
+                                    <div class="blockchain-id"><?php echo htmlspecialchars($matchData['recipientID'] ?? 'N/A'); ?></div>
+                                </div>
+                            </div>
+                            
+                            <div class="blockchain-match-footer">
+                                <div class="blockchain-match-status <?php echo strtolower($matchData['status'] ?? 'pending'); ?>">
+                                    Status: <?php echo htmlspecialchars($matchData['status'] ?? 'Pending'); ?>
+                                </div>
+                                <a href="../blockchain/view_blockchain.php?match_id=<?php echo $matchData['matchID']; ?>" class="blockchain-view-link">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="blockchain-no-matches">
+                <p>No match records found on the blockchain yet.</p>
+            </div>
+        <?php endif; ?>
+        
+        <div class="blockchain-verification">
+            <div class="blockchain-info">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                <p>All medical data is securely stored and verified on our healthcare blockchain. 
+                This ensures data integrity, transparency, and immutability throughout the organ donation process.</p>
+            </div>
+        </div>
+    <?php endif; ?>
+    
+    <svg class="blockchain-icon-bg" viewBox="0 0 24 24">
+        <path d="M12 0L7 4h4v8h2V4h4l-5-4zm5 6v2h-3v2h3v2l4-3-4-3zm-10 4l-4 3 4 3v-2h3v-2H7v-2zm10 4v2h-4l5 4 5-4h-4v-2h-2zm-2 4H7l5 4 5-4h-7z"/>
+    </svg>
+</div>
     </div>
   </div>
 </body>

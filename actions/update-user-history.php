@@ -11,16 +11,22 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
-// Retrieve POST parameters (make sure your frontend sends these as POST data)
+// Retrieve POST parameters
 $region = $_POST['region'] ?? '';
 $city = $_POST['city'] ?? '';
 $latitude = isset($_POST['latitude']) ? floatval($_POST['latitude']) : null;
 $longitude = isset($_POST['longitude']) ? floatval($_POST['longitude']) : null;
-$selectedHospital = $_POST['selected_hospital'] ?? null; // Optional field if a hospital was chosen
+$selectedHospital = isset($_POST['selected_hospital']) ? intval($_POST['selected_hospital']) : null;
 
 // Validate required parameters
 if (!$region || !$city || !$latitude || !$longitude) {
     echo json_encode(["error" => "Missing required location parameters."]);
+    exit();
+}
+
+// Validate that a hospital was selected
+if (!$selectedHospital) {
+    echo json_encode(["error" => "No hospital was selected."]);
     exit();
 }
 
@@ -52,6 +58,9 @@ $stmt->close();
 
 $conn->close();
 
-echo json_encode(["success" => true, "message" => "User location and history updated successfully."]);
+echo json_encode([
+    "success" => true, 
+    "message" => "User location and selected hospital saved successfully."
+]);
 exit();
 ?>

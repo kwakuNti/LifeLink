@@ -233,7 +233,18 @@
   </style>
 </head>
 <body>
+
   <header>
+  <nav class="navbar">
+    <div class="container navbar-content">
+        <a href="match-page" class="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+            Back to Matches
+        </a>
+    </div>
+</nav>
     <h1>Contact a Hospital to Register for a Transplant</h1>
     <p>Reach out to one of these hospitals to complete your recipient registration. 
       They will guide you through the necessary paperwork and medical evaluations.</p>
@@ -380,7 +391,7 @@
 
       <!-- Hospital Card 4 -->
       <div class="hospital-card" data-region="Greater Accra" data-specialty="Kidney">
-        <img src="../assets/images/hospital_default.jpg" alt="37 Military Hospital">
+        <img src="../assets/images/37.jpg" alt="37 Military Hospital">
         <div class="hospital-info">
           <h2>37 Military Hospital</h2>
           <span class="hospital-specialty">Kidney Specialist</span>
@@ -416,7 +427,7 @@
 
       <!-- Hospital Card 5 -->
       <div class="hospital-card" data-region="Greater Accra" data-specialty="Kidney">
-        <img src="../assets/images/hospital_default.jpg" alt="University of Ghana Medical Centre">
+        <img src="../assets/images/ugm.jpeg" alt="University of Ghana Medical Centre">
         <div class="hospital-info">
           <h2>University of Ghana Medical Centre</h2>
           <span class="hospital-specialty">Kidney Specialist</span>

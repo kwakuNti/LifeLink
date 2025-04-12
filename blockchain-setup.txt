@@ -1,0 +1,120 @@
+. Tear Down the Existing Network
+If you're using the Fabric test-network provided in fabric-samples, you usually have a script named network.sh or similar. Run the command to bring down the network:
+
+bash
+Copy
+./network.sh down
+This command stops and removes all containers (orderer, peers, chaincode containers, etc.) and, if configured, deletes persistent volumes that hold the ledger and chaincode data.
+
+2. Clean Up Docker Volumes (If Needed)
+Sometimes the shutdown script might not remove all Docker volumes. To make sure that all ledger data is cleared, list and remove the relevant Docker volumes:
+
+List volumes:
+
+bash
+Copy
+docker volume ls
+Remove the volumes that were created by the network. For example, if the volumes include names like dev-peer0.org1.example.com, remove them with:
+
+bash
+Copy
+docker volume rm <volume_name>
+You can also remove all unused volumes with:
+
+bash
+Copy
+docker volume prune -f
+Warning: This deletes all unused volumes on your system.
+
+3. Restart the Network
+After cleaning up, start your network again with a fresh state. For example, from the test-network directory:
+
+bash
+Copy
+./network.sh up createChannel -c mychannel -s couchdb
+
+Install the chaincode on Org1 and Org2 (using the environment variables and paths you provided):
+
+For Org1:
+
+bash
+Copy
+# Set Org1 environment variables:
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_MSPCONFIGPATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_ADDRESS="localhost:7051"
+export CORE_PEER_TLS_ROOTCERT_FILE="/Users/cliffoldntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem"
+export FABRIC_CFG_PATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/config"
+export ORDERER_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+peer lifecycle chaincode install /Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/chaincode/donor-medical-info/donor_medical_info.tar.gz
+
+
+
+if peer isnt found
+Run this command to make the peer CLI tool accessible:
+
+bash
+Copy
+export PATH=$PATH:/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/bin
+To make this permanent, add the line to your shell profile (e.g., ~/.zshrc or ~/.bashrc).
+
+Step 2: Verify the peer Command
+Check if the peer command is now recognized:
+
+bash
+Copy
+peer version
+If successful, you’ll see output like:
+
+Copy
+Peer:
+ Version: 2.5.4
+ Commit: ...
+Step 3: Re-Run Your Chaincode Packaging Command
+
+
+Step 1: Set the Correct FABRIC_CFG_PATH
+Based on your Fabric setup path, run:
+
+bash
+Copy
+
+
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_MSPCONFIGPATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_ADDRESS="localhost:7051"
+export CORE_PEER_TLS_ROOTCERT_FILE="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+export FABRIC_CFG_PATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/config"
+export ORDERER_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+peer lifecycle chaincode install /Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/chaincode/donor-medical-info/donor_medical_info.tar.gz
+
+
+
+Org2 Configuration
+For Org2 operations, use these variables:
+
+bash
+Copy
+# Org2 Settings
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_MSPCONFIGPATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp"
+export CORE_PEER_ADDRESS="localhost:9051"
+export CORE_PEER_TLS_ROOTCERT_FILE="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+
+
+after installing the chain code you would get a pacakge id 
+
+
+xpeer lifecycle chaincode approveformyorg \
+  --channelID mychannel \
+  --name donor_medical_info \
+  --version 1.0 \
+  --package-id donor_medical_info_v3:6c461d11a18a83a3902918512b7ffc60b347a68e7c236f90847244977dc9cd5f \
+  --sequence 1 \
+  --orderer localhost:7050 \
+  --tls \
+  --cafile $ORDERER_CA
