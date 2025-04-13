@@ -93,8 +93,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 exit();
             }
         } catch (Exception $e) {
-            header("Location: ../templates/sign-up.php?status=error&message=Mailer Error: " . $mail->ErrorInfo);
-            exit();
+            $errorMessage = urlencode("Mailer Error: " . str_replace(["\r", "\n"], '', $mail->ErrorInfo));
+            header("Location: ../templates/sign-up.php?status=error&message=$errorMessage");
+                        exit();
         }
     } else {
         header("Location: ../templates/sign-up.php?status=error&message=Registration failed. Try again.");
