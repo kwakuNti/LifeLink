@@ -5,6 +5,8 @@ include '../config/connection.php';
 // Load PHPMailer for sending emails
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\OAuth;
+use League\OAuth2\Client\Provider\Google;
 require '../vendor/autoload.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -55,26 +57,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['otp_email'] = $email; // Store email in session for OTP verification
         $stmt->close();
 
-        // Send OTP email using PHPMailer
+        // Send OTP email using PHPMailer with OAuth 2.0
         $mail = new PHPMailer(true);
         try {
-            // SMTP Configuration
+            // OAuth 2.0 Configuration
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'cliffco24@gmail.com';
-            $mail->Password = 'nzqo jtlf kuau xtus'; // Use App Password
+            $mail->AuthType = 'XOAUTH2';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
+            $mail->CharSet = 'UTF-8';
+            
+            // Google OAuth Configuration
+            $clientId = 'client_id';
+            $clientSecret = 'client_secret';
+            
+            // The refresh token you obtained during the OAuth flow
+            $refreshToken = 'YOUR_REFRESH_TOKEN'; // You need to obtain this
+            
+            $provider = new Google([
+                'clientId' => $clientId,
+                'clientSecret' => $clientSecret,
+            ]);
+            
+            $mail->setOAuth(
+                new OAuth([
+                    'provider' => $provider,
+                    'clientId' => $clientId,
+                    'clientSecret' => $clientSecret,
+                    'refreshToken' => $refreshToken,
+                    'userName' => 'cliffco24@gmail.com',
+                ])
+            );
 
             // Email Headers
-            $mail->setFrom('cliffco24@gmail.com', 'LifeLink Support');
+            $mail->setFrom('email', 'LifeLink Support');
             $mail->addAddress($email);
             $mail->addReplyTo('support@lifelink.com', 'LifeLink Support');
             $mail->Subject = "Verify Your Account - LifeLink";
             $mail->isHTML(true);
+            
+            // DKIM configuration (if available)
+            // $mail->DKIM_domain = 'lifelink.com';
+            // $mail->DKIM_private = '/path/to/private_key.pem';
+            // $mail->DKIM_selector = 'selector';
+            // $mail->DKIM_identity = $mail->From;
 
-            // Email Content
+            // Improved Email Content for Better Deliverability
             $mail->Body = "
                 <!DOCTYPE html>
                 <html lang='en'>
@@ -117,6 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             // Plain text version for email clients that don't support HTML
             $mail->AltBody = "Hello $firstName,\n\nThank you for creating an account with LifeLink. Your OTP code is: $otp\n\nPlease enter this code to verify your email. This code will expire in 15 minutes.\n\nIf you did not create this account, please disregard this email.\n\nNeed help? Contact support@lifelink.com";
+
             if ($mail->send()) {
                 // Redirect to OTP verification page
                 header("Location: ../templates/verify-otp.php?status=success&message=OTP sent to your email.");
@@ -128,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } catch (Exception $e) {
             $errorMessage = urlencode("Mailer Error: " . str_replace(["\r", "\n"], '', $mail->ErrorInfo));
             header("Location: ../templates/sign-up.php?status=error&message=$errorMessage");
-                        exit();
+            exit();
         }
     } else {
         header("Location: ../templates/sign-up.php?status=error&message=Registration failed. Try again.");
