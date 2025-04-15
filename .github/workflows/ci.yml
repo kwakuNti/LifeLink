@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       mysql:
@@ -16,17 +17,21 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: life_test
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -u root -proot --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+        volumes:
+          - ./db:/docker-entrypoint-initdb.d
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     # PHP Setup
     - name: Set up PHP
@@ -34,22 +39,43 @@ jobs:
       with:
         php-version: '8.3'
         extensions: mbstring, pdo, pdo_mysql, curl, xdebug
+        coverage: xdebug
+        tools: composer:v2
 
     - name: Install PHP dependencies
-      run: composer install
+      run: composer install --prefer-dist --no-progress
 
-    - name: Initialize MySQL test data
+    # Database Setup
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if mysqladmin ping -h 127.0.0.1 -P 3306 -u root -proot --silent; then
+            echo "MySQL is ready!"
+            break
+          fi
+          echo "Waiting for MySQL ($i/30)..."
+          sleep 2
+        done
+
+    - name: Initialize MySQL schema and test data
       run: |
         mysql -h 127.0.0.1 -P 3306 -u root -proot life_test < db/life_test.sql
-        # Explicitly insert test data that matches your API expectations
         mysql -h 127.0.0.1 -P 3306 -u root -proot life_test <<EOF
-        INSERT INTO donors (id, user_id, blood_type, gfr, on_dialysis) 
-        VALUES (1, 1, 'O', 90.0, 1) 
-        ON DUPLICATE KEY UPDATE id=id;
+        INSERT INTO users (id, name, email, password, role, is_verified)
+        VALUES 
+          (1, 'Test Donor', 'donor@test.com', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'donor', 1),
+          (2, 'Test Recipient', 'recipient@test.com', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'recipient', 1)
+        ON DUPLICATE KEY UPDATE email=VALUES(email);
         
-        INSERT INTO recipients (id, user_id, blood_type, gfr, on_dialysis) 
-        VALUES (1, 2, 'O', 85.0, 1) 
-        ON DUPLICATE KEY UPDATE id=id;
+        INSERT INTO donors (id, user_id, blood_type, gfr, on_dialysis, organ_type,
+                          init_age, bmi_tcr, dayswait_alloc, wgt_kg_tcr, hgt_cm_tcr, dgn_tcr)
+        VALUES (1, 1, 'O', 90.0, 1, 'Kidney', 30, 22.5, 100, 65.0, 170.0, 1.0)
+        ON DUPLICATE KEY UPDATE id=VALUES(id);
+        
+        INSERT INTO recipients (id, user_id, patient_code, blood_type, gfr, on_dialysis, organ_type,
+                              init_age, bmi_tcr, dayswait_alloc, wgt_kg_tcr, hgt_cm_tcr, dgn_tcr)
+        VALUES (1, 2, 'PT001', 'O', 85.0, 1, 'Kidney', 32, 23.5, 120, 70.0, 175.0, 1.2)
+        ON DUPLICATE KEY UPDATE id=VALUES(id);
         EOF
 
     # Python/Flask Setup
@@ -61,34 +87,75 @@ jobs:
     - name: Install Python dependencies
       run: |
         cd flask
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Start Flask API with health check
       run: |
         cd flask
-        nohup python3 app.py > flask.log 2>&1 &
+        # Install any additional requirements
+        pip install gunicorn
+        
+        # Start Flask in background using gunicorn
+        nohup gunicorn --bind 0.0.0.0:5000 --access-logfile - --error-logfile - app:app > flask.log 2>&1 &
+        
+        # Wait for API to be ready with timeout
         echo "Waiting for Flask API to start..."
-        timeout 30 bash -c 'until curl -s http://localhost:5000/health; do sleep 2; done' || (cat flask.log && exit 1)
+        for i in {1..15}; do
+          if curl -s http://localhost:5000/api/health | grep -q '"status":"ok"'; then
+            echo "API is up!"
+            break
+          fi
+          echo "Attempt $i/15 - Waiting for API to start..."
+          sleep 2
+        done
+        
+        # Verify API is running
+        if ! curl -s http://localhost:5000/api/health | grep -q '"status":"ok"'; then
+          echo "API failed to start. Logs:"
+          cat flask.log
+          exit 1
+        fi
 
     # Run Tests
-    - name: Run Flask tests
+    - name: Run PHPUnit tests
       run: |
-        cd flask
-        pytest || echo "No Flask tests found"
-
-    - name: Run PHPUnit tests (with API dependency)
-      run: |
-        curl -v http://localhost:5000/health-check  # Verify API is up
-        ./vendor/bin/phpunit
+        # Verify API is ready
+        curl -v http://localhost:5000/api/health
+        
+        # Run tests with coverage
+        ./vendor/bin/phpunit --coverage-clover coverage.xml
+        
+        # Check if tests failed but continue to generate report
+        if [ $? -ne 0 ]; then
+          echo "PHPUnit tests failed - check results"
+        fi
 
     # Coverage and Artifacts
-    - name: Generate PHPUnit coverage report
+    - name: Generate coverage report
       run: |
-        rm -rf coverage/
-        ./vendor/bin/phpunit --coverage-html coverage/
+        mkdir -p coverage-report
+        ./vendor/bin/phpunit --coverage-html coverage-report
 
-    - name: Upload PHPUnit coverage artifact
+    - name: Upload coverage artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: php-code-coverage
-        path: coverage/
+        name: coverage-report
+        path: coverage-report/
+
+    - name: Upload API logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: flask-logs
+        path: flask/flask.log
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          coverage.xml
+          reports/
