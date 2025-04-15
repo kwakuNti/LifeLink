@@ -34,6 +34,14 @@ class ApiMatchTest extends TestCase
         // For debugging
         echo "Raw response: " . $rawResponse . PHP_EOL;
         echo "Status code: " . $statusCode . PHP_EOL;
+
+        // Change assertions to match your actual API response structure
+        $this->assertNotNull($response, "API returned null response");
+        $this->assertIsArray($response, "API response is not an array");
+        if (is_array($response)) {
+            $this->assertArrayHasKey('error', $response);
+            $this->assertEquals('Invalid donor_id', $response['error']);
+        }
         
         // We expect a 400 status code for invalid input
         $this->assertEquals(400, $statusCode, "Expected status 400 for invalid donor_id");

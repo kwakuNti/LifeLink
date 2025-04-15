@@ -38,10 +38,19 @@ jobs:
     - name: Install PHP dependencies
       run: composer install
 
-    - name: Initialize MySQL schema
+    - name: Initialize MySQL test data
       run: |
-        sudo apt-get install -y mysql-client
         mysql -h 127.0.0.1 -P 3306 -u root -proot life_test < db/life_test.sql
+        # Explicitly insert test data that matches your API expectations
+        mysql -h 127.0.0.1 -P 3306 -u root -proot life_test <<EOF
+        INSERT INTO donors (id, user_id, blood_type, gfr, on_dialysis) 
+        VALUES (1, 1, 'O', 90.0, 1) 
+        ON DUPLICATE KEY UPDATE id=id;
+        
+        INSERT INTO recipients (id, user_id, blood_type, gfr, on_dialysis) 
+        VALUES (1, 2, 'O', 85.0, 1) 
+        ON DUPLICATE KEY UPDATE id=id;
+        EOF
 
     # Python/Flask Setup
     - name: Set up Python
@@ -59,7 +68,7 @@ jobs:
         cd flask
         nohup python3 app.py > flask.log 2>&1 &
         echo "Waiting for Flask API to start..."
-        timeout 30 bash -c 'until curl -s http://localhost:5000/health-check; do sleep 2; done' || (cat flask.log && exit 1)
+        timeout 30 bash -c 'until curl -s http://localhost:5000/health; do sleep 2; done' || (cat flask.log && exit 1)
 
     # Run Tests
     - name: Run Flask tests

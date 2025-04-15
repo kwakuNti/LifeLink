@@ -4,8 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use GuzzleHttp\Client;
-use mysqli;
-
+use mysqli as MySQLi;
 function findCompatibleMatches(array $donor): array {
     $client = new Client(['base_uri' => 'http://localhost:5000']);
     
