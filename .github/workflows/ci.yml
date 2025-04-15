@@ -40,6 +40,17 @@ jobs:
     - name: Run PHPUnit tests
       run: ./vendor/bin/phpunit
 
+    - name: Generate PHPUnit coverage report
+      run: |
+        rm -rf coverage/
+        ./vendor/bin/phpunit --coverage-html coverage/
+
+    - name: Upload PHPUnit coverage artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: php-code-coverage
+        path: coverage/
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
