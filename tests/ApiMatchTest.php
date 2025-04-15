@@ -27,12 +27,17 @@ class ApiMatchTest extends TestCase
     {
         $payload = json_encode([
             'donor_id' => 1,
-            'recipient_id' =>1
+            'recipient_id' => 1
         ]);
     
         $response = $this->sendPostRequest("/predict_success", $payload, $statusCode);
-        print_r($response); // <== NEW
-        $this->assertArrayHasKey('prediction', $response);
+        
+        // Check that we got a valid response before checking keys
+        $this->assertIsArray($response, "API did not return a valid array response");
+        
+        if (is_array($response)) {
+            $this->assertArrayHasKey('prediction', $response);
+        }
     }
     
 

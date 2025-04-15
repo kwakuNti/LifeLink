@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS life;
+DROP DATABASE IF EXISTS life_test;
 -- Create Database
-CREATE DATABASE life;
-USE life;
+CREATE DATABASE life_test;
+USE life_test;
 
 -- Users Table
 CREATE TABLE users (
