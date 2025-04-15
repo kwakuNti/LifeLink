@@ -9,7 +9,7 @@ class DonorMedicalInfoTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->conn = new mysqli('localhost', 'root', 'root', 'life_test');
+        $this->conn = new mysqli('127.0.0.1', 'root', 'root', 'life_test', 3306);
 
         // Create a dummy user and get ID
         $email = 'donor_test_' . rand(1000, 9999) . '@example.com';

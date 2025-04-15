@@ -10,7 +10,7 @@ class LoginTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->conn = new mysqli('localhost', 'root', 'root', 'life_test');
+        $this->conn = new mysqli('127.0.0.1', 'root', 'root', 'life_test', 3306);
 
         // Ensure the test user exists in the DB
         $hashed = password_hash($this->testPassword, PASSWORD_DEFAULT);

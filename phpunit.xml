@@ -9,7 +9,6 @@
     failOnWarning="false"
     executionOrder="default"
     cacheResult="true"
-    coverageProcessUncoveredFiles="true"
 >
 
     <testsuites>

@@ -8,7 +8,7 @@ class SignupTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->conn = new mysqli('localhost', 'root', 'root', 'life_test'); // use test DB
+        $this->conn = new mysqli('127.0.0.1', 'root', 'root', 'life_test', 3306);
     }
 
     public function testMissingFields()

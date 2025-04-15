@@ -10,7 +10,7 @@ class OtpVerificationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->conn = new mysqli('localhost', 'root', 'root', 'life_test');
+        $this->conn = new mysqli('127.0.0.1', 'root', 'root', 'life_test', 3306);
 
         // Insert test user with OTP and not verified
         $stmt = $this->conn->prepare("INSERT INTO users (name, email, password, role, otp, is_verified) VALUES ('OTP Tester', ?, ?, 'donor', ?, FALSE)");

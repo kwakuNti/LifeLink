@@ -61,6 +61,12 @@ jobs:
         cd flask
         pip install -r requirements.txt
 
+    - name: Start Flask API in background
+      run: |
+        cd flask
+        nohup flask run --host=0.0.0.0 --port=5000 &
+        sleep 5
+
     - name: Run Flask Unit Tests (if any)
       run: |
         cd flask
