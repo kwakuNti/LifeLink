@@ -69,10 +69,10 @@ liver_outcome_features = [
 def connect_to_database():
     try:
         connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="root",
-            database="life"
+            host=os.environ.get('DB_HOST', 'localhost'),
+            user=os.environ.get('DB_USER', 'root'),
+            password=os.environ.get('DB_PASS', 'root'),
+            database=os.environ.get('DB_NAME', 'life')
         )
         return connection
     except Error as e:

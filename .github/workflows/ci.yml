@@ -93,6 +93,10 @@ jobs:
     - name: Start Flask API with health check
       run: |
         cd flask
+        export DB_HOST=127.0.0.1
+        export DB_USER=root       
+        export DB_PASS=root       
+        export DB_NAME=life_test  
         # Install any additional requirements
         pip install gunicorn
         
