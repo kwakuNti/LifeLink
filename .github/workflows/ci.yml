@@ -28,6 +28,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # PHP Setup
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -42,20 +43,7 @@ jobs:
         sudo apt-get install -y mysql-client
         mysql -h 127.0.0.1 -P 3306 -u root -proot life_test < db/life_test.sql
 
-    - name: Run PHPUnit tests
-      run: ./vendor/bin/phpunit
-
-    - name: Generate PHPUnit coverage report
-      run: |
-        rm -rf coverage/
-        ./vendor/bin/phpunit --coverage-html coverage/
-
-    - name: Upload PHPUnit coverage artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: php-code-coverage
-        path: coverage/
-
+    # Python/Flask Setup
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -66,13 +54,32 @@ jobs:
         cd flask
         pip install -r requirements.txt
 
-    - name: Start Flask API in background
+    - name: Start Flask API with health check
       run: |
         cd flask
-        nohup python3 app.py &
-        sleep 5
+        nohup python3 app.py > flask.log 2>&1 &
+        echo "Waiting for Flask API to start..."
+        timeout 30 bash -c 'until curl -s http://localhost:5000/health-check; do sleep 2; done' || (cat flask.log && exit 1)
 
-    - name: Run Flask Unit Tests (if any)
+    # Run Tests
+    - name: Run Flask tests
       run: |
         cd flask
-        pytest || echo "No tests yet"
+        pytest || echo "No Flask tests found"
+
+    - name: Run PHPUnit tests (with API dependency)
+      run: |
+        curl -v http://localhost:5000/health-check  # Verify API is up
+        ./vendor/bin/phpunit
+
+    # Coverage and Artifacts
+    - name: Generate PHPUnit coverage report
+      run: |
+        rm -rf coverage/
+        ./vendor/bin/phpunit --coverage-html coverage/
+
+    - name: Upload PHPUnit coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: php-code-coverage
+        path: coverage/
