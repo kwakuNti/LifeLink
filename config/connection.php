@@ -1,10 +1,10 @@
 <?php
-$servername = "localhost";  // Change if using a remote database
-$username = "root";         // Default MAMP MySQL username
-$password = "root";         // Default MAMP MySQL password
+$servername = "localhost";  // Still localhost on the same instance
+$username = "root";         // Default XAMPP MySQL user
+$password = "";             // XAMPP on Linux has no root password by default
 $database = "life";         // Your database name
 
-// Create a connection
+// Create connection
 $conn = new mysqli($servername, $username, $password, $database);
 
 // Check connection
