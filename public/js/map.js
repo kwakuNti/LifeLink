@@ -86,46 +86,64 @@ document.addEventListener("DOMContentLoaded", () => {
   
     // On "Find Nearest Hospitals" button click
     findHospitalsButton.addEventListener("click", () => {
-      let selectedCity = citySelect.value;
-      let enteredLocation = manualLocation.value.trim();
-  
-      if (selectedRegion && !selectedCity && !enteredLocation) {
-        showSnackbar("Please select a city", "error");
+      const selectedCity = citySelect.value;
+    
+      if (!selectedRegion) {
+        showSnackbar("Please select a region first.", "error");
         return;
       }
-  
-      // Reset the selected hospital when performing a new search
-      selectedHospitalId = null;
-      saveInfoButton.disabled = true;
-  
-      // Build query parameters
-      const queryParams = `region=${selectedRegion}&city=${selectedCity}&location=${enteredLocation}`;
-  
-      fetch(`../includes/get-hospitals.php?${queryParams}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            showSnackbar(data.error, "error");
-          } else if (data.hospitals && Array.isArray(data.hospitals)) {
-            displayHospitals(data.hospitals);
-            // Store the user location from the response if provided
-            if (data.user_location) {
-              latestUserLat = data.user_location.latitude;
-              latestUserLng = data.user_location.longitude;
-            }
-            // Note: Save button remains disabled until a hospital is confirmed
-          } else if (Array.isArray(data)) {
-            displayHospitals(data);
-            // Note: Save button remains disabled until a hospital is confirmed
-          } else {
-            showSnackbar("Unexpected response from server.", "error");
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching hospitals:", error);
-          showSnackbar("Error fetching hospitals. Check console.", "error");
-        });
+    
+      if (!selectedCity) {
+        showSnackbar("Please select a city.", "error");
+        return;
+      }
+    
+      if (!navigator.geolocation) {
+        showSnackbar("Geolocation not supported by this browser.", "error");
+        return;
+      }
+    
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+    
+          latestUserLat = lat;
+          latestUserLng = lng;
+    
+          // Fetch hospitals using real-time user location
+          const queryParams = `region=${selectedRegion}&city=${selectedCity}&lat=${lat}&lng=${lng}`;
+    
+          fetch(`../includes/get-hospitals.php?${queryParams}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.error) {
+                showSnackbar(data.error, "error");
+              } else if (data.hospitals && Array.isArray(data.hospitals)) {
+                displayHospitals(data.hospitals);
+              } else if (Array.isArray(data)) {
+                displayHospitals(data);
+              } else {
+                showSnackbar("Unexpected response from server.", "error");
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching hospitals:", error);
+              showSnackbar("Error fetching hospitals. Check console.", "error");
+            });
+        },
+        error => {
+          console.error("Geolocation error:", error);
+          showSnackbar("Location access denied or unavailable.", "error");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
     });
+    
   
     // Save user search information when the "Save Information" button is clicked
     saveInfoButton.addEventListener("click", () => {
@@ -216,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <h4>${index + 1}. ${hospital.name}</h4>
             <p>${hospital.region}, ${hospital.city}</p>
             <p>Specialization: ${hospital.organ_specialty}</p>
-            <p>Distance: ${hospital.distance?.toFixed(2) ?? 'N/A'} km</p>
+            <p>Distance from current location: ${hospital.distance?.toFixed(2) ?? 'N/A'} km</p>
             <div class="hospital-buttons">
               <button onclick="openGoogleMaps(${hospital.latitude}, ${hospital.longitude})">Get Directions</button>
               <button class="confirm-button" onclick="confirmHospitalSelection(${hospitalId})">Confirm Selection</button>
@@ -238,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function startTutorial() {
       Swal.fire({
         title: 'Tutorial: How to Use the Map',
-        text: 'Some Regions Have No Transplant Hospitals, Click next to continue',
+        text: 'Transplant Hospitals are only in a few regions, Click next to continue',
         icon: 'info',
         confirmButtonText: 'Next',
       }).then((result) => {
@@ -250,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     function stepOne() {
       Swal.fire({
-        title: 'Step 1: Pick a Region by selecting it on the map',
+        title: 'Step 1: Pick a Region',
         text: 'Click on one of the regions on the map to select it. Your Geometry must be good😉',
         icon: 'info',
         confirmButtonText: 'Next',
@@ -284,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function stepFour() {
       Swal.fire({
         title: 'Step 4: Confirm Hospital Selection',
-        text: 'After finding hospitals, click "Confirm Selection" on your preferred hospital, then "Save Search Information".',
+        text: 'After finding hospitals, click "Save Selection" to save your choice.',
         icon: 'info',
         confirmButtonText: 'Got It!',
       });

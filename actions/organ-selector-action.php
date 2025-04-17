@@ -4,7 +4,7 @@ include '../config/connection.php';
 
 // Ensure the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../templates/login.php?status=error&message=Please log in first.");
+    header("Location: ../templates/login?status=error&message=Please log in first.");
     exit();
 }
 
@@ -12,7 +12,7 @@ $userId = $_SESSION['user_id'];
 $organ = $_POST['organ'] ?? '';
 
 if (!$organ || !in_array($organ, ['Kidney', 'Liver'])) {
-    header("Location: ../templates/organ-selector-page.php?status=error&message=Please select a valid organ.");
+    header("Location: ../templates/organ-selector-page?status=error&message=Please select a valid organ.");
     exit();
 }
 
@@ -45,9 +45,9 @@ $conn->close();
 
 // Redirect based on the organ selected
 if ($organ === 'Kidney') {
-    header("Location: ../templates/donor_medical_info.php?status=success&message=Organ selection saved.");
+    header("Location: ../templates/donor_medical_info?status=success&message=Organ selection saved.");
 } else if ($organ === 'Liver') {
-    header("Location: ../templates/liver_donor_info.php?status=success&message=Organ selection saved.");
+    header("Location: ../templates/liver_donor_info?status=success&message=Organ selection saved.");
 }
 exit();
 ?>

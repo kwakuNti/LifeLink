@@ -7,7 +7,7 @@ $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if (empty($username) || empty($password)) {
-    header("Location: ../templates/hospital_login.php?status=error&message=Missing credentials");
+    header("Location: ../templates/hospital_login?status=error&message=Missing credentials");
     exit();
 }
 
@@ -23,7 +23,7 @@ if ($stmt = $conn->prepare("SELECT id, name, password FROM hospitals WHERE usern
         // Check if the hospital's stored password is still the default.
         // Here we compare using password_verify() against "Default@1".
         if (password_verify("Default@1", $hospital['password'])) {
-            header("Location: ../templates/hospital_login.php?status=error&message=Please click 'Forgot Password' to set a new password");
+            header("Location: ../templates/hospital_login?status=error&message=Please click 'Forgot Password' to set a new password");
             exit();
         }
         
@@ -32,19 +32,19 @@ if ($stmt = $conn->prepare("SELECT id, name, password FROM hospitals WHERE usern
             // Successful login: set session variables
             $_SESSION['hospital_id'] = $hospital['id'];
             $_SESSION['hospital_name'] = $hospital['name'];
-            header("Location: ../templates/hospital-admin.php?status=success&message=Welcome " . urlencode($hospital['name']));
+            header("Location: ../templates/hospital-admin?status=success&message=Welcome " . urlencode($hospital['name']));
             exit();
         } else {
-            header("Location: ../templates/hospital_login.php?status=error&message=Invalid credentials");
+            header("Location: ../templates/hospital_login?status=error&message=Invalid credentials");
             exit();
         }
     } else {
-        header("Location: ../templates/hospital_login.php?status=error&message=Invalid credentials");
+        header("Location: ../templates/hospital_login?status=error&message=Invalid credentials");
         exit();
     }
     $stmt->close();
 } else {
-    header("Location: ../templates/hospital_login.php?status=error&message=Database error: " . urlencode($conn->error));
+    header("Location: ../templates/hospital_login?status=error&message=Database error: " . urlencode($conn->error));
     exit();
 }
 

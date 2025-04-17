@@ -155,3 +155,4 @@ ADD COLUMN organ_type ENUM('Kidney', 'Liver', 'Both') DEFAULT NULL AFTER blood_t
 
 ALTER TABLE recipients 
 ADD COLUMN organ_type ENUM('Kidney', 'Liver', 'Both') DEFAULT NULL;
+

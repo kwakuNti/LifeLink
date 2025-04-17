@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id']) ) {
+    header("Location: login.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -564,6 +571,14 @@ body {
         snackbar.className = snackbar.className.replace("show", "");
       }, 3000);
     }
+    window.addEventListener("DOMContentLoaded", () => {
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      () => console.log("Geolocation available."),
+      () => showSnackbar("Please allow location access for accurate results.", "warning")
+    );
+  }
+});
 
     // Call on page load
     window.addEventListener('DOMContentLoaded', checkForMessage);

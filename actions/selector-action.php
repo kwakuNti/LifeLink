@@ -4,7 +4,7 @@ include '../config/connection.php';
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../templates/login.php?status=error&message=Please log in first.");
+    header("Location: ../templates/login?status=error&message=Please log in first.");
     exit();
 }
 
@@ -13,7 +13,7 @@ $role = $_GET['role'] ?? '';
 
 // Validate role
 if (!in_array($role, ['donor', 'recipient'])) {
-    header("Location: ../templates/selector-page.php?status=error&message=Invalid role selected!");
+    header("Location: ../templates/selector-page?status=error&message=Invalid role selected!");
     exit();
 }
 
@@ -24,9 +24,9 @@ $stmt->bind_param("si", $role, $userId);
 
 if ($stmt->execute()) {
     // Redirect to the dashboard or any page you want
-    header("Location: ../templates/organ-selection.php?status=success&message=Role updated successfully!");
+    header("Location: ../templates/organ-selection?status=success&message=Role updated successfully!");
 } else {
-    header("Location: ../templates/selector-page.php?status=error&message=Failed to update role.");
+    header("Location: ../templates/selector-page?status=error&message=Failed to update role.");
 }
 
 $stmt->close();

@@ -544,7 +544,55 @@ def api_confirm_transplant():
         return jsonify({'message': 'Transplant confirmed', 'transplant_id': transplant_id})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/determine_liver_cluster', methods=['POST'])
+def api_determine_liver_cluster():
+    """Determine liver cluster based on donor medical data"""
+    try:
+        data = request.json
+        # Map form field names to model expected names
+        medical_data = {
+            'INIT_AGE': float(data.get('init_age')),
+            'HGT_CM_TCR': float(data.get('hgt_cm_tcr')),
+            'WGT_KG_TCR': float(data.get('wgt_kg_tcr')),
+            'BMI_TCR': float(data.get('bmi_tcr')),
+            'GFR': float(data.get('gfr')),
+            'ON_DIALYSIS': 1 if data.get('on_dialysis') == 'Y' else 0,
+            'BLOOD_TYPE': data.get('blood_type'),
+            'DAYSWAIT_ALLOC': 0  # Default value as per your form
+        }
+        
+        cluster = determine_cluster(medical_data, 'Liver')
+        return jsonify({'cluster': cluster})
+        
+    except Exception as e:
+        print(f"Error determining cluster: {e}")
+        return jsonify({'error': str(e)}), 500
 
+
+@app.route('/api/determine_kidney_cluster', methods=['POST'])
+def api_determine_kidney_cluster():
+    """Determine liver cluster based on donor medical data"""
+    try:
+        data = request.json
+        # Map form field names to model expected names
+        medical_data = {
+            'INIT_AGE': float(data.get('init_age')),
+            'HGT_CM_TCR': float(data.get('hgt_cm_tcr')),
+            'WGT_KG_TCR': float(data.get('wgt_kg_tcr')),
+            'BMI_TCR': float(data.get('bmi_tcr')),
+            'GFR': float(data.get('gfr')),
+            'ON_DIALYSIS': 1 if data.get('on_dialysis') == 'Y' else 0,
+            'BLOOD_TYPE': data.get('blood_type'),
+            'DAYSWAIT_ALLOC': 0  # Default value as per your form
+        }
+        
+        cluster = determine_cluster(medical_data, 'Kidney')
+        return jsonify({'cluster': cluster})
+        
+    except Exception as e:
+        print(f"Error determining cluster: {e}")
+        return jsonify({'error': str(e)}), 500
 @app.route('/api/health', methods=['GET'])
 def health_check():
     status = {

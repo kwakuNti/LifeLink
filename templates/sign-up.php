@@ -20,7 +20,7 @@
     <div class="img" style="position: relative;">
     <img src="../assets/images/login-removebg-preview.png" alt="Login Image">
             <!-- The link is absolutely positioned on top of the image -->
-    <a href="hospital_selector.php" class="hospital-portal-link">
+    <a href="hospital_selector" class="hospital-portal-link">
       Hospital Portal
     </a>
         </div>
@@ -42,7 +42,8 @@
                     </div>
                     <div class="div">
                         <h5>First Name</h5>
-                        <input type="text" class="input" name="firstName" pattern="[A-Za-z]+" title="First name should only contain letters." required>
+                        <input type="text" class="input" name="firstName"                                pattern="^[A-Za-z]+(-[A-Za-z]+)*$" 
+                        title="First name should only contain letters." required>
                     </div>
                 </div>
 
@@ -53,7 +54,8 @@
                     </div>
                     <div class="div">
                         <h5>Last Name</h5>
-                        <input type="text" class="input" name="lastName" pattern="[A-Za-z]+" title="Last name should only contain letters." required>
+                        <input type="text" class="input" name="lastName"                                pattern="^[A-Za-z]+(-[A-Za-z]+)*$" 
+                        title="Last name should only contain letters." required>
                     </div>
                 </div>
 
@@ -99,7 +101,7 @@
         </div>
     </div>
     <style>
-        .hospital-portal-link {
+  .hospital-portal-link {
   position: absolute;
   top: 50px;      /* distance from top edge of .img container */
   right:  170px;    /* distance from right edge of .img container */
@@ -110,6 +112,9 @@
   font-weight: 900;
   text-decoration: none;
   font-size: larger;
+}.hospital-portal-link:hover {
+  color: #fff; /* keeps the text white on hover */
+  text-decoration: none;
 }
 
 

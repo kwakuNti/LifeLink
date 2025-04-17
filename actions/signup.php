@@ -16,17 +16,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate input fields
     if (empty($firstName) || empty($lastName) || empty($email) || empty($password) || empty($confirmPassword)) {
-        header("Location: ../templates/sign-up.php?status=error&message=All fields are required!");
+        header("Location: ../templates/sign-up?status=error&message=All fields are required!");
         exit();
     }
 
     if ($password !== $confirmPassword) {
-        header("Location: ../templates/sign-up.php?status=error&message=Passwords do not match!");
+        header("Location: ../templates/sign-up?status=error&message=Passwords do not match!");
         exit();
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header("Location: ../templates/sign-up.php?status=error&message=Invalid email format!");
+        header("Location: ../templates/sign-up?status=error&message=Invalid email format!");
         exit();
     }
 
@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $stmt->store_result();
     if ($stmt->num_rows > 0) {
-        header("Location: ../templates/sign-up.php?status=error&message=Email is already registered!");
+        header("Location: ../templates/sign-up?status=error&message=Email is already registered!");
         exit();
     }
     $stmt->close();
@@ -52,7 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("ssss", $fullName, $email, $hashedPassword, $otp);
     
     if ($stmt->execute()) {
-        $_SESSION['otp_email'] = $email; // Store email in session for OTP verification
+        // Save email and a flag in session so that the OTP page can verify the flow
+        $_SESSION['otp_email'] = $email;
+        $_SESSION['otp_sent'] = true;
         $stmt->close();
 
         // Send OTP email using PHPMailer
@@ -119,19 +121,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->AltBody = "Hello $firstName,\n\nThank you for creating an account with LifeLink. Your OTP code is: $otp\n\nPlease enter this code to verify your email. This code will expire in 15 minutes.\n\nIf you did not create this account, please disregard this email.\n\nNeed help? Contact support@lifelink.com";
             if ($mail->send()) {
                 // Redirect to OTP verification page
-                header("Location: ../templates/verify-otp.php?status=success&message=OTP sent to your email.");
+                header("Location: ../templates/verify-otp?status=success&message=OTP sent to your email.");
                 exit();
             } else {
-                header("Location: ../templates/sign-up.php?status=error&message=Failed to send OTP email.");
+                header("Location: ../templates/sign-up?status=error&message=Failed to send OTP email.");
                 exit();
             }
         } catch (Exception $e) {
             $errorMessage = urlencode("Mailer Error: " . str_replace(["\r", "\n"], '', $mail->ErrorInfo));
-            header("Location: ../templates/sign-up.php?status=error&message=$errorMessage");
-                        exit();
+            header("Location: ../templates/sign-up?status=error&message=$errorMessage");
+            exit();
         }
     } else {
-        header("Location: ../templates/sign-up.php?status=error&message=Registration failed. Try again.");
+        header("Location: ../templates/sign-up?status=error&message=Registration failed. Try again.");
         exit();
     }
 }

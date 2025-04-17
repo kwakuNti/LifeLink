@@ -47,14 +47,14 @@ file_put_contents($logFile, "On Dialysis: $onDialysis\n\n", FILE_APPEND);
 
 if (empty($bloodType)) {
     file_put_contents($logFile, "ERROR: Blood type is required.\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=error&message=Blood+type+is+required.");
+    header("Location: ../templates/liver_donor_info?status=error&message=Blood+type+is+required.");
     exit();
 }
 
 // Basic validation for required fields
 if ($initAge <= 0 || $bmiTcr <= 0.0 || $dayswaitAlloc < 0) {
     file_put_contents($logFile, "ERROR: Missing or invalid required fields.\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=error&message=Missing+or+invalid+required+fields.");
+    header("Location: ../templates/liver_donor_info?status=error&message=Missing+or+invalid+required+fields.");
     exit();
 }
 
@@ -127,7 +127,7 @@ file_put_contents($logFile, "Record exists in blockchain: " . ($recordExistsInBl
 // If record exists in blockchain, do not proceed with any updates
 if ($recordExistsInBlockchain) {
     file_put_contents($logFile, "IMMUTABLE RECORD: Donor information already exists on blockchain. No changes allowed.\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=warning&message=Your+medical+information+is+already+recorded+on+the+blockchain+and+cannot+be+modified.+Please+contact+system+administrator+for+assistance+if+needed.");
+    header("Location: ../templates/liver_donor_info?status=warning&message=Your+medical+information+is+already+recorded+on+the+blockchain+and+cannot+be+modified.+Please+contact+system+administrator+for+assistance+if+needed.");
     exit();
 }
 
@@ -195,7 +195,7 @@ file_put_contents($logFile, "Script path: $scriptPath\n", FILE_APPEND);
 // Check if script exists and is executable
 if (!file_exists($scriptPath)) {
     file_put_contents($logFile, "ERROR: Script file does not exist at: $scriptPath\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=error&message=Blockchain+script+not+found.");
+    header("Location: ../templates/liver_donor_info?status=error&message=Blockchain+script+not+found.");
     exit();
 } else {
     file_put_contents($logFile, "Script exists. Checking permissions...\n", FILE_APPEND);
@@ -266,10 +266,10 @@ if ($return_var === 0) {
     header("Location: ../templates/map.php?status=success&message=Medical+information+submitted+successfully+to+the+blockchain.+This+information+is+now+immutable.");
 } else if ($alreadyExistsError) {
     file_put_contents($logFile, "\nERROR: Donor already exists in blockchain\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=warning&message=Your+medical+information+is+already+recorded+on+the+blockchain+and+cannot+be+modified.+Please+contact+the+system+administrator+if+you+need+assistance.");
+    header("Location: ../templates/liver_donor_info?status=warning&message=Your+medical+information+is+already+recorded+on+the+blockchain+and+cannot+be+modified.+Please+contact+the+system+administrator+if+you+need+assistance.");
 } else {
     file_put_contents($logFile, "\nERROR: Redirecting to donor_medical_info.php with error message\n", FILE_APPEND);
-    header("Location: ../templates/donor_medical_info?status=error&message=Failed+to+store+medical+information+on+the+blockchain.+Please+try+again+or+contact+support.");
+    header("Location: ../templates/liver_donor_info?status=error&message=Failed+to+store+medical+information+on+the+blockchain.+Please+try+again+or+contact+support.");
 }
 exit();
 ?>

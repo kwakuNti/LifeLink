@@ -4,7 +4,7 @@ include '../config/connection.php';
 
 // Check if hospital is logged in; if not, redirect to login page.
 if (!isset($_SESSION['hospital_id']) || !isset($_SESSION['hospital_name'])) {
-    header("Location: ../templates/hospital_login.php?status=error&message=Please log in first");
+    header("Location: ../templates/hospital_login?status=error&message=Please log in first");
     exit();
 }
 
@@ -26,6 +26,29 @@ if ($result->num_rows === 1) {
     ];
 }
 $stmt->close();
+
+// Query average waiting days
+$stmtAvgWait = $conn->prepare("SELECT AVG(dayswait_alloc) as avg_waiting FROM recipients WHERE hospital_id = ?");
+$stmtAvgWait->bind_param("i", $hospitalId);
+$stmtAvgWait->execute();
+$resultAvgWait = $stmtAvgWait->get_result();
+$avgWaitingDays = 0;
+if ($row = $resultAvgWait->fetch_assoc()) {
+    $avgWaitingDays = round($row['avg_waiting'], 1);
+}
+$stmtAvgWait->close();
+
+// Query number on dialysis
+$stmtDialysis = $conn->prepare("SELECT COUNT(*) as dialysis_count FROM recipients WHERE hospital_id = ? AND on_dialysis = 1");
+$stmtDialysis->bind_param("i", $hospitalId);
+$stmtDialysis->execute();
+$resultDialysis = $stmtDialysis->get_result();
+$onDialysis = 0;
+if ($row = $resultDialysis->fetch_assoc()) {
+    $onDialysis = $row['dialysis_count'];
+}
+$stmtDialysis->close();
+
 
 // Query total number of patients added by this hospital.
 $stmtPatients = $conn->prepare("SELECT COUNT(*) as total_patients FROM recipients WHERE hospital_id = ?");
@@ -75,8 +98,10 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($hospital['name']); ?> Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">    <title><?php echo htmlspecialchars($hospital['name']); ?> Admin Dashboard</title>
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -569,12 +594,12 @@ $conn->close();
                     </div>
                     <div class="box">
                         <i class="uil uil-clock icon"></i>
-                        <span class="number"><?php echo isset($avgWaitingDays) ? $avgWaitingDays : '15'; ?></span>
+                        <span class="number"><?php echo isset($avgWaitingDays) ? $avgWaitingDays : '0'; ?></span>
                         <span class="text">Avg. Days Waiting</span>
                     </div>
                     <div class="box">
                         <i class="uil uil-heart-medical icon"></i>
-                        <span class="number"><?php echo isset($onDialysis) ? $onDialysis : '8'; ?></span>
+                        <span class="number"><?php echo isset($onDialysis) ? $onDialysis : '0'; ?></span>
                         <span class="text">On Dialysis</span>
                     </div>
                 </div>

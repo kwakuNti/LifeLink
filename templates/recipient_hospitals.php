@@ -230,21 +230,27 @@
         font-size: 1.7rem;
       }
     }
+
+        /* New back-button styling – positioned at top left over the header */
+        .back-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: var(--back-button-color);
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .back-button:hover {
+      background-color: var(--back-button-color);
+      color: var(--back-button-bg);
+    }
   </style>
 </head>
 <body>
 
   <header>
-  <nav class="navbar">
-    <div class="container navbar-content">
-        <a href="match-page" class="back-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 18l-6-6 6-6"/>
-            </svg>
-            Back to Matches
-        </a>
-    </div>
-</nav>
+
     <h1>Contact a Hospital to Register for a Transplant</h1>
     <p>Reach out to one of these hospitals to complete your recipient registration. 
       They will guide you through the necessary paperwork and medical evaluations.</p>
@@ -470,8 +476,8 @@
     </div>
 
     <!-- Done button that returns user to homepage -->
-    <button class="done-button" onclick="window.location.href='../index.php'">
-      Return to Homepage
+    <button class="done-button" onclick="window.location.href='selector-page'">
+      Return to Selector
     </button>
   </div>
 
