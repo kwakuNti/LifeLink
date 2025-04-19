@@ -5,7 +5,7 @@ include '../includes/functions.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../templates/login.php?status=error&message=Please+log+in+first.");
+    header("Location: ../templates/login?status=error&message=Please+log+in+first.");
     exit();
 }
 
@@ -263,7 +263,7 @@ foreach ($output as $line) {
 // Redirect based on result - handle the "already exists" error specifically
 if ($return_var === 0) {
     file_put_contents($logFile, "\nSUCCESS: Redirecting to map.php\n", FILE_APPEND);
-    header("Location: ../templates/map.php?status=success&message=Medical+information+submitted+successfully+to+the+blockchain.+This+information+is+now+immutable.");
+    header("Location: ../templates/map?status=success&message=Medical+information+submitted+successfully+to+the+blockchain.+This+information+is+now+immutable.");
 } else if ($alreadyExistsError) {
     file_put_contents($logFile, "\nERROR: Donor already exists in blockchain\n", FILE_APPEND);
     header("Location: ../templates/liver_donor_info?status=warning&message=Your+medical+information+is+already+recorded+on+the+blockchain+and+cannot+be+modified.+Please+contact+the+system+administrator+if+you+need+assistance.");

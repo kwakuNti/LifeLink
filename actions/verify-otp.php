@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_SESSION['otp_email']; // Email stored during signup
 
     if (empty($enteredOtp)) {
-        header("Location: ../templates/verify-otp.php?status=error&message=OTP is required!");
+        header("Location: ../templates/verify-otp?status=error&message=OTP is required!");
         exit();
     }
 
@@ -31,11 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         unset($_SESSION['otp_email']);
 
         // Redirect to login page
-        header("Location: ../templates/login.php?status=success&message=Account verified! You can now log in.");
+        header("Location: ../templates/login?status=success&message=Account verified! You can now log in.");
         exit();
     } else {
         // Wrong OTP
-        header("Location: ../templates/verify-otp.php?status=error&message=Invalid OTP. Try again.");
+        header("Location: ../templates/verify-otp?status=error&message=Invalid OTP. Try again.");
         exit();
     }
 }

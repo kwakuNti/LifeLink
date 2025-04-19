@@ -14,13 +14,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate required fields
     if (empty($name) || empty($email) || empty($password) || empty($confirmPassword)) {
-        header("Location: ../templates/patient-info.php?status=error&message=Please fill in all required fields.");
+        header("Location: ../templates/patient-info?status=error&message=Please fill in all required fields.");
         exit();
     }
 
     // Validate password match
     if ($password !== $confirmPassword) {
-        header("Location: ../templates/patient-info.php?status=error&message=Passwords do not match.");
+        header("Location: ../templates/patient-info?status=error&message=Passwords do not match.");
         exit();
     }
 
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->store_result();
     if ($stmt->num_rows > 0) {
         $stmt->close();
-        header("Location: ../templates/patient-info.php?status=error&message=Email already exists.");
+        header("Location: ../templates/patient-info?status=error&message=Email already exists.");
         exit();
     }
     $stmt->close();
@@ -44,14 +44,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $name, $email, $hashedPassword, $role);
     if (!$stmt->execute()) {
-        header("Location: ../templates/patient-info.php?status=error&message=Error registering user.");
+        header("Location: ../templates/patient-info?status=error&message=Error registering user.");
         exit();
     }
     $user_id = $stmt->insert_id;
     $stmt->close();
 
     // Redirect to add patient page, passing the new user's id as patient_id
-    header("Location: ../templates/add-patient.php?patient_id=" . $user_id . "&status=success&message=Successful");
+    header("Location: ../templates/add-patient?patient_id=" . $user_id . "&status=success&message=Successful");
     exit();
 }
 ?>
