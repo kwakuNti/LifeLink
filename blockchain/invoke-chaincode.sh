@@ -2,13 +2,13 @@
 
 # Log file
 LOG_FILE="/tmp/fabric_invoke_$(date +%s).log"
-echo "=== BLOCKCHAIN INVOKE SCRIPT LOG ===" > $LOG_FILE
-echo "Started: $(date)" >> $LOG_FILE
-echo "Running as user: $(whoami)" >> $LOG_FILE
+echo "=== BLOCKCHAIN INVOKE SCRIPT LOG ===" > "$LOG_FILE"
+echo "Started: $(date)" >> "$LOG_FILE"
+echo "Running as user: $(whoami)" >> "$LOG_FILE"
 
-# Use peer binary from Fabric samples
-PEER_CMD="/home/ubuntu/go/src/github.com/kwakuNti/fabric-samples/bin/peer"
-echo "Using peer command at: $PEER_CMD" >> $LOG_FILE
+# Use global peer binary
+PEER_CMD=$(which peer)
+echo "Using peer command at: $PEER_CMD" >> "$LOG_FILE"
 
 # Set Fabric environment variables
 export FABRIC_CFG_PATH="/home/ubuntu/go/src/github.com/kwakuNti/fabric-samples/config"
@@ -34,7 +34,7 @@ if [ "$FUNCTION" == "CreateMatch" ]; then
     MATCH_SCORE=$4
     STATUS=$5
 
-    echo "Running CreateMatch..." >> $LOG_FILE
+    echo "Running CreateMatch..." >> "$LOG_FILE"
     JSON_ARGS=$(echo "{\"Args\":[\"CreateMatch\", \"$MATCH_ID\", \"$DONOR_ID\", \"$RECIPIENT_ID\", \"$MATCH_SCORE\", \"$STATUS\"]}")
 else
     USER_ID=$1
@@ -50,19 +50,19 @@ else
     ON_DIALYSIS=${11}
     FILE_REF=${12}
 
-    echo "Running CreateMedicalInfo..." >> $LOG_FILE
+    echo "Running CreateMedicalInfo..." >> "$LOG_FILE"
     JSON_ARGS=$(echo "{\"Args\":[\"CreateMedicalInfo\", \"$USER_ID\", \"$BLOOD_TYPE\", \"$INIT_AGE\", \"$BMI_TCR\", \"$DAYSWAIT_ALLOC\", \"$KIDNEY_CLUSTER\", \"$DGN_TCR\", \"$WGT_KG_TCR\", \"$HGT_CM_TCR\", \"$GFR\", \"$ON_DIALYSIS\", \"$FILE_REF\"]}")
 fi
 
-echo "JSON_ARGS: $JSON_ARGS" >> $LOG_FILE
+echo "JSON_ARGS: $JSON_ARGS" >> "$LOG_FILE"
 
 # Final peer invoke command
 INVOKE_CMD="$PEER_CMD chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile \"$ORDERER_CA\" -C mychannel -n donor_medical_info --peerAddresses localhost:7051 --tlsRootCertFiles \"$ORG1_CA\" --peerAddresses localhost:9051 --tlsRootCertFiles \"$ORG2_CA\" -c '$JSON_ARGS'"
 
-echo "Executing: $INVOKE_CMD" >> $LOG_FILE
+echo "Executing: $INVOKE_CMD" >> "$LOG_FILE"
 OUTPUT=$(eval $INVOKE_CMD 2>&1)
 EXIT_CODE=$?
 
-echo "Command output: $OUTPUT" >> $LOG_FILE
+echo "Command output: $OUTPUT" >> "$LOG_FILE"
 echo "$OUTPUT"
 exit $EXIT_CODE
