@@ -1,222 +1,153 @@
-//x.php
-<?php
-session_start();
-include_once '../config/connection.php';
-include '../includes/functions.php';
+#!/bin/bash
+# invoke-chaincode.sh - Supports both CreateMedicalInfo and CreateMatch
+# Create a log file for tracking execution
+LOG_FILE="/tmp/fabric_invoke_$(date +%s).log"
+echo "=== BLOCKCHAIN INVOKE SCRIPT LOG ===" > $LOG_FILE
+echo "Started: $(date)" >> $LOG_FILE
+echo "Running as user: $(whoami)" >> $LOG_FILE
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../templates/login.php?status=error&message=Please+log+in+first.");
-    exit();
-}
+# Set absolute path to peer command
+PEER_CMD=$(which peer)
+if [ -z "$PEER_CMD" ]; then
+    PEER_CMD="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/bin/peer"  # Fallback path
+    echo "No peer command found in PATH, using default: $PEER_CMD" >> $LOG_FILE
+else
+    echo "Found peer command at: $PEER_CMD" >> $LOG_FILE
+fi
+echo "PATH: $PATH" >> $LOG_FILE
 
-// Default to the logged-in user ID for donor query, unless a donor_id is specified.
-$donorId = isset($_GET['donor_id']) ? $_GET['donor_id'] : $_SESSION['user_id'];
-// Optionally, check for a match_id parameter.
-$matchId = isset($_GET['match_id']) ? $_GET['match_id'] : null;
+# Set required environment variables
+export FABRIC_CFG_PATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/config"
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+export CORE_PEER_MSPCONFIGPATH="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+export CORE_PEER_ADDRESS="localhost:7051"
 
-// Create a log file for debugging.
-$logFile = "/tmp/blockchain_query_" . time() . ".log";
-file_put_contents($logFile, "=== LIFELINK BLOCKCHAIN QUERY DEBUG LOG ===\n");
-file_put_contents($logFile, "Timestamp: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
-if ($matchId) {
-    file_put_contents($logFile, "Querying for Match ID: " . $matchId . "\n\n", FILE_APPEND);
-} else {
-    file_put_contents($logFile, "Querying for Donor ID: " . $donorId . "\n\n", FILE_APPEND);
-}
+# Log environment variables
+echo "Environment variables set:" >> $LOG_FILE
+echo "FABRIC_CFG_PATH: $FABRIC_CFG_PATH" >> $LOG_FILE
+echo "CORE_PEER_TLS_ENABLED: $CORE_PEER_TLS_ENABLED" >> $LOG_FILE
+echo "CORE_PEER_LOCALMSPID: $CORE_PEER_LOCALMSPID" >> $LOG_FILE
+echo "CORE_PEER_TLS_ROOTCERT_FILE: $CORE_PEER_TLS_ROOTCERT_FILE" >> $LOG_FILE
+echo "CORE_PEER_MSPCONFIGPATH: $CORE_PEER_MSPCONFIGPATH" >> $LOG_FILE
+echo "CORE_PEER_ADDRESS: $CORE_PEER_ADDRESS" >> $LOG_FILE
 
-// Path to the query script.
-$scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
+# Define certificate paths
+ORDERER_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem"
+ORG1_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem"
+ORG2_CA="/Users/cliffordntinkansah/go/src/github.com/kwakuNti/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem"
 
-// Check if the script exists and is executable.
-if (!file_exists($scriptPath)) {
-    file_put_contents($logFile, "ERROR: Script file does not exist at: $scriptPath\n", FILE_APPEND);
-    $error = "Query script not found.";
-} else {
-    if (!is_executable($scriptPath)) {
-        chmod($scriptPath, 0755);
-    }
-    
-    // Construct the command.
-    if ($matchId) {
-        $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg("ReadMatch") . " " . escapeshellarg($matchId);
-    } else {
-        $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($donorId);
-    }
-    file_put_contents($logFile, "Command: $cmd\n", FILE_APPEND);
+# Check if certificate files exist and are readable
+echo "Checking certificate files:" >> $LOG_FILE
+for cert_file in "$ORDERER_CA" "$ORG1_CA" "$ORG2_CA"; do
+    if [ -f "$cert_file" ]; then
+        echo "✅ File exists: $cert_file" >> $LOG_FILE
+        if [ -r "$cert_file" ]; then
+            echo "✅ File is readable: $cert_file" >> $LOG_FILE
+        else
+            echo "❌ File is NOT readable: $cert_file" >> $LOG_FILE
+            chmod 644 "$cert_file" 2>> $LOG_FILE
+            echo "Attempted to fix permissions" >> $LOG_FILE
+        fi
+    else
+        echo "❌ File does NOT exist: $cert_file" >> $LOG_FILE
+    fi
+done
 
-    // Execute the command.
-    $output = [];
-    $return_var = 0;
-    exec($cmd . " 2>&1", $output, $return_var);
+#######################
+# Build JSON arguments:
+#######################
 
-    // Log results.
-    file_put_contents($logFile, "Return code: $return_var\n", FILE_APPEND);
-    file_put_contents($logFile, "Output: " . print_r($output, true) . "\n", FILE_APPEND);
+# The script now supports two modes, based on the first parameter:
+# If the first parameter is "CreateMatch", then shift the parameters and use those.
+# Otherwise, default to CreateMedicalInfo.
 
-    if ($return_var === 0 && !empty($output)) {
-        $jsonResponse = implode("", $output);
-        if (preg_match('/\{.*\}/s', $jsonResponse, $matches)) {
-            $cleanedJson = $matches[0];
-            file_put_contents($logFile, "Extracted JSON: " . $cleanedJson . "\n", FILE_APPEND);
-            $data = json_decode($cleanedJson, true);
-        } else {
-            $data = json_decode($jsonResponse, true);
-        }
-        
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $queryResult = $data;
-            file_put_contents($logFile, "Successfully parsed JSON data.\n", FILE_APPEND);
-        } else {
-            $error = "Failed to parse blockchain response: " . json_last_error_msg();
-            file_put_contents($logFile, "JSON parse error: " . json_last_error_msg() . "\n", FILE_APPEND);
-        }
-    } else {
-        $error = "Failed to query the blockchain.";
-        file_put_contents($logFile, "Query failed with return code: $return_var\n", FILE_APPEND);
-    }
-}
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockchain Query Result</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        table, th, td { border: 1px solid #ccc; }
-        th, td { padding: 0.5rem; text-align: left; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Blockchain Query Result</h1>
-        <?php if (isset($error)): ?>
-            <div class="alert alert-danger">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
-        <?php elseif (isset($queryResult)): ?>
-            <?php if (isset($queryResult['donorID'])): ?>
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Donor Medical Information (ID: <?php echo htmlspecialchars($queryResult['donorID']); ?>)</h2>
-                    </div>
-                    <div class="card-body">
-                        <table class="table">
-                            <tr>
-                                <th>Blood Type:</th>
-                                <td><?php echo htmlspecialchars($queryResult['bloodType'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Age:</th>
-                                <td><?php echo htmlspecialchars($queryResult['init_age'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>BMI:</th>
-                                <td><?php echo htmlspecialchars($queryResult['bmi_tcr'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Days on Waiting List:</th>
-                                <td><?php echo htmlspecialchars($queryResult['dayswait_alloc'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Kidney Cluster:</th>
-                                <td><?php echo htmlspecialchars($queryResult['kidney_cluster'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Diagnosis Code:</th>
-                                <td><?php echo htmlspecialchars($queryResult['dgn_tcr'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Weight (kg):</th>
-                                <td><?php echo htmlspecialchars($queryResult['wgt_kg_tcr'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Height (cm):</th>
-                                <td><?php echo htmlspecialchars($queryResult['hgt_cm_tcr'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>GFR:</th>
-                                <td><?php echo htmlspecialchars($queryResult['gfr'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>On Dialysis:</th>
-                                <td><?php echo (isset($queryResult['on_dialysis']) && intval($queryResult['on_dialysis']) === 1) ? 'Yes' : 'No'; ?></td>
-                            </tr>
-                            <tr>
-                                <th>File Reference:</th>
-                                <td><?php echo htmlspecialchars($queryResult['fileReference'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Recorded On:</th>
-                                <td>
-                                    <?php 
-                                    if (isset($queryResult['timestamp'])) {
-                                        echo date('Y-m-d H:i:s', intval($queryResult['timestamp']));
-                                    } else {
-                                        echo 'N/A';
-                                    }
-                                    ?>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            <?php elseif (isset($queryResult['matchID'])): ?>
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Match Record (ID: <?php echo htmlspecialchars($queryResult['matchID']); ?>)</h2>
-                    </div>
-                    <div class="card-body">
-                        <table class="table">
-                            <tr>
-                                <th>Donor ID:</th>
-                                <td><?php echo htmlspecialchars($queryResult['donorID'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Recipient ID:</th>
-                                <td><?php echo htmlspecialchars($queryResult['recipientID'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Match Score:</th>
-                                <td><?php echo htmlspecialchars($queryResult['matchScore'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Status:</th>
-                                <td><?php echo htmlspecialchars($queryResult['status'] ?? 'N/A'); ?></td>
-                            </tr>
-                            <tr>
-                                <th>Recorded On:</th>
-                                <td>
-                                    <?php 
-                                    if (isset($queryResult['timestamp'])) {
-                                        echo date('Y-m-d H:i:s', intval($queryResult['timestamp']));
-                                    } else {
-                                        echo 'N/A';
-                                    }
-                                    ?>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            <?php endif; ?>
-            
-            <div class="mt-4">
-                <h3>Raw Blockchain Data</h3>
-                <pre><?php echo json_encode($queryResult, JSON_PRETTY_PRINT); ?></pre>
-            </div>
-        <?php else: ?>
-            <div class="alert alert-warning">
-                No data found.
-            </div>
-        <?php endif; ?>
-        
-        <div class="mt-4">
-            <a href="../templates/donor_medical_info.php" class="btn btn-primary">Back to Medical Form</a>
-        </div>
-    </div>
-</body>
-</html>
+FUNCTION=$1
+shift
+
+if [ "$FUNCTION" == "CreateMatch" ]; then
+    # Expected parameters for CreateMatch:
+    # MATCH_ID, DONOR_ID, RECIPIENT_ID, MATCH_SCORE, STATUS
+    MATCH_ID=$1
+    DONOR_ID=$2
+    RECIPIENT_ID=$3
+    MATCH_SCORE=$4
+    STATUS=$5
+
+    echo "Selected function: CreateMatch" >> $LOG_FILE
+    echo "MATCH_ID: $MATCH_ID" >> $LOG_FILE
+    echo "DONOR_ID: $DONOR_ID" >> $LOG_FILE
+    echo "RECIPIENT_ID: $RECIPIENT_ID" >> $LOG_FILE
+    echo "MATCH_SCORE: $MATCH_SCORE" >> $LOG_FILE
+    echo "STATUS: $STATUS" >> $LOG_FILE
+
+    JSON_ARGS=$(echo "{\"Args\":[\"CreateMatch\", \"$MATCH_ID\", \"$DONOR_ID\", \"$RECIPIENT_ID\", \"$MATCH_SCORE\", \"$STATUS\"]}")
+else
+    # Default function is CreateMedicalInfo.
+    # Expected parameters: USER_ID, BLOOD_TYPE, INIT_AGE, BMI_TCR, DAYSWAIT_ALLOC, KIDNEY_CLUSTER, DGN_TCR, WGT_KG_TCR, HGT_CM_TCR, GFR, ON_DIALYSIS, FILE_REF
+    USER_ID=$1
+    BLOOD_TYPE=$2
+    INIT_AGE=$3
+    BMI_TCR=$4
+    DAYSWAIT_ALLOC=$5
+    KIDNEY_CLUSTER=$6
+    DGN_TCR=$7
+    WGT_KG_TCR=$8
+    HGT_CM_TCR=$9
+    GFR=${10}
+    ON_DIALYSIS=${11}
+    FILE_REF=${12}
+
+    echo "Selected function: CreateMedicalInfo" >> $LOG_FILE
+    echo "USER_ID: $USER_ID" >> $LOG_FILE
+    echo "BLOOD_TYPE: $BLOOD_TYPE" >> $LOG_FILE
+    echo "INIT_AGE: $INIT_AGE" >> $LOG_FILE
+    echo "BMI_TCR: $BMI_TCR" >> $LOG_FILE
+    echo "DAYSWAIT_ALLOC: $DAYSWAIT_ALLOC" >> $LOG_FILE
+    echo "KIDNEY_CLUSTER: $KIDNEY_CLUSTER" >> $LOG_FILE
+    echo "DGN_TCR: $DGN_TCR" >> $LOG_FILE
+    echo "WGT_KG_TCR: $WGT_KG_TCR" >> $LOG_FILE
+    echo "HGT_CM_TCR: $HGT_CM_TCR" >> $LOG_FILE
+    echo "GFR: $GFR" >> $LOG_FILE
+    echo "ON_DIALYSIS: $ON_DIALYSIS" >> $LOG_FILE
+    echo "FILE_REF: $FILE_REF" >> $LOG_FILE
+
+    JSON_ARGS=$(echo "{\"Args\":[\"CreateMedicalInfo\", \"$USER_ID\", \"$BLOOD_TYPE\", \"$INIT_AGE\", \"$BMI_TCR\", \"$DAYSWAIT_ALLOC\", \"$KIDNEY_CLUSTER\", \"$DGN_TCR\", \"$WGT_KG_TCR\", \"$HGT_CM_TCR\", \"$GFR\", \"$ON_DIALYSIS\", \"$FILE_REF\"]}")
+fi
+
+echo "JSON Arguments: $JSON_ARGS" >> $LOG_FILE
+
+# Construct full command
+INVOKE_CMD="$PEER_CMD chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile \"$ORDERER_CA\" -C mychannel -n donor_medical_info --peerAddresses localhost:7051 --tlsRootCertFiles \"$ORG1_CA\" --peerAddresses localhost:9051 --tlsRootCertFiles \"$ORG2_CA\" -c '$JSON_ARGS'"
+
+echo "Executing command: $INVOKE_CMD" >> $LOG_FILE
+
+# Execute the command and capture output
+OUTPUT=$(eval $INVOKE_CMD 2>&1)
+EXIT_CODE=$?
+
+# Log the output and exit code
+echo "Command output: $OUTPUT" >> $LOG_FILE
+echo "Exit code: $EXIT_CODE" >> $LOG_FILE
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "Command failed. Attempting diagnostics..." >> $LOG_FILE
+    if [ ! -f "$PEER_CMD" ]; then
+        echo "❌ peer binary not found at $PEER_CMD" >> $LOG_FILE
+    elif [ ! -x "$PEER_CMD" ]; then
+        echo "❌ peer binary exists but is not executable" >> $LOG_FILE
+    else
+        echo "✅ peer binary exists and is executable" >> $LOG_FILE
+    fi
+    echo "Testing network connectivity:" >> $LOG_FILE
+    nc -zv localhost 7050 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to orderer at localhost:7050" >> $LOG_FILE
+    nc -zv localhost 7051 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to peer0.org1 at localhost:7051" >> $LOG_FILE
+    nc -zv localhost 9051 >> $LOG_FILE 2>&1 || echo "❌ Cannot connect to peer0.org2 at localhost:9051" >> $LOG_FILE
+    echo "Testing basic peer command:" >> $LOG_FILE
+    $PEER_CMD channel list >> $LOG_FILE 2>&1
+fi
+
+echo "Log file created at: $LOG_FILE" >&2
+echo "$OUTPUT"
+exit $EXIT_CODE
