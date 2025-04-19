@@ -133,8 +133,24 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         },
         error => {
-          console.error("Geolocation error:", error);
-          showSnackbar("Location access denied or unavailable.", "error");
+          // If the user denies location access, show SweetAlert2 modal
+          if (error.code === error.PERMISSION_DENIED) {
+            Swal.fire({
+              title: "Location Permission Required",
+              text: "To find the nearest hospitals, we need access to your location. Please allow it in your browser settings.",
+              icon: "warning",
+              confirmButtonText: "Retry",
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Try again
+                window.location.reload(); // Will prompt again if user changed settings
+              }
+            });
+          } else {
+            showSnackbar("Location access denied or unavailable.", "error");
+          }
         },
         {
           enableHighAccuracy: true,
