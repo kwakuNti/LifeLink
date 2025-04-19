@@ -190,3 +190,7 @@ Use external datasets to validate the model's generalizability.
 
 Integration into Matching System:
 Combine the outcome prediction with the unsupervised matching (using nearest neighbors) to create a comprehensive donor-recipient matching framework.
+
+
+
+gunicorn app:app --bind 0.0.0.0:5000 --daemon
