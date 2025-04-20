@@ -8,7 +8,6 @@ import os
 import mysql.connector
 from mysql.connector import Error
 import subprocess  # Add this line
-import ssl
 
 app = Flask(__name__)
 CORS(app)
@@ -608,11 +607,5 @@ def health_check():
     }
     return jsonify(status)
 
-if __name__ == "__main__":
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(
-        '/etc/letsencrypt/archive/api.lifelink.ink/fullchain1.pem',
-        '/etc/letsencrypt/archive/api.lifelink.ink/privkey1.pem'
-    )
-    app.run(host='0.0.0.0', port=5000, ssl_context=context, debug=False)
-
+# if __name__ == '__main__':
+#     app.run(debug=True, host='', port=5000)
