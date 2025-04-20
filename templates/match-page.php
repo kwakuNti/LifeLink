@@ -42,7 +42,7 @@ if (!$donor) {
 
 // Function to call our Flask API (for actions handled via PHP)
 function callAPI($endpoint, $data = []) {
-    $api_url = "http://51.21.134.172:5000/api/" . $endpoint;
+    $api_url = "http://lifelink.ink:5000/api/" . $endpoint;
     
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, $api_url);
@@ -1249,7 +1249,7 @@ $stmtHospital->close();
               submitButton.disabled = true;
               submitButton.innerHTML = 'Processing...';
               
-              fetch("http://51.21.134.172:5000/api/confirm_match", {
+              fetch("http://lifelink.ink:5000/api/confirm_match", {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
@@ -1306,7 +1306,7 @@ $stmtHospital->close();
               data.hospital_id = <?php echo json_encode(isset($_SESSION['hospital_id']) ? $_SESSION['hospital_id'] : null); ?>;
               data.status = "completed";
               
-              fetch("http://51.21.134.172:5000/api/confirm_transplant", {
+              fetch("http://lifelink.ink:5000/api/confirm_transplant", {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'

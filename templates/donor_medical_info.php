@@ -855,7 +855,7 @@ clusterForm.addEventListener('submit', function (e) {
     blood_type: document.getElementById('blood_type_cluster').value
   };
 
-  fetch('http://51.21.134.172:5000/api/determine_kidney_cluster', {
+  fetch('http://lifelink.ink:5000/api/determine_kidney_cluster', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
