@@ -607,5 +607,9 @@ def health_check():
     }
     return jsonify(status)
 
-# if __name__ == '__main__':
-#     app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain('/etc/letsencrypt/live/api.lifelink.ink/fullchain.pem', 
+                           '/etc/letsencrypt/live/api.lifelink.ink/privkey.pem')
+    
+    app.run(host='0.0.0.0', port=5000, ssl_context=context, debug=False)
