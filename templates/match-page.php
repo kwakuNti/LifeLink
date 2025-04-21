@@ -1,6 +1,14 @@
 <?php
 include_once '../config/connection.php';
 session_start();
+
+// at the very top, after session_start() etc.
+define('API_BASE', 
+    (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+    . '://' . $_SERVER['HTTP_HOST']
+    . '/api/'
+);
+
 // Check if user is logged in and is a donor
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'donor') {
     header("Location: login.php");
@@ -42,33 +50,32 @@ if (!$donor) {
 
 // Function to call our Flask API (for actions handled via PHP)
 function callAPI($endpoint, $data = []) {
-    $api_url = "http://51.21.134.172:5000/api/" . $endpoint;
-    
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $api_url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-    
-    if (!empty($data)) {
-        $jsonData = json_encode($data);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonData);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($jsonData)
-        ]);
-    }
-    
-    $response = curl_exec($curl);
-    $err = curl_error($curl);
-    curl_close($curl);
-    
-    if ($err) {
-        return ["error" => "cURL Error: " . $err];
-    }
-    
-    return json_decode($response, true);
+  $api_url = API_BASE . $endpoint;        // ← now goes via lifelink.ink/api/…
+  $curl    = curl_init($api_url);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+
+  if (!empty($data)) {
+      $jsonData = json_encode($data);
+      curl_setopt($curl, CURLOPT_POST,        true);
+      curl_setopt($curl, CURLOPT_POSTFIELDS,  $jsonData);
+      curl_setopt($curl, CURLOPT_HTTPHEADER, [
+          'Content-Type: application/json',
+          'Content-Length: ' . strlen($jsonData)
+      ]);
+  }
+
+  $response = curl_exec($curl);
+  $err      = curl_error($curl);
+  curl_close($curl);
+
+  if ($err) {
+      return ["error" => "cURL Error: " . $err];
+  }
+
+  return json_decode($response, true);
 }
+
 
 // Helper function to check if a match already exists
 function isAlreadyMatched($donor_id, $recipient_id) {
@@ -1249,7 +1256,7 @@ $stmtHospital->close();
               submitButton.disabled = true;
               submitButton.innerHTML = 'Processing...';
               
-              fetch("http://51.21.134.172:5000/api/confirm_match", {
+              fetch("/api/confirm_match", {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
@@ -1306,7 +1313,7 @@ $stmtHospital->close();
               data.hospital_id = <?php echo json_encode(isset($_SESSION['hospital_id']) ? $_SESSION['hospital_id'] : null); ?>;
               data.status = "completed";
               
-              fetch("http://51.21.134.172:5000/api/confirm_transplant", {
+              fetch("/api/confirm_transplant", {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
