@@ -5,17 +5,10 @@ $servername = "localhost";
 $username   = "root";
 $password   = "Nti2702";
 $database   = "life";
-$socket     = "/opt/lampp/var/mysql/mysql.sock";
 
-$conn = new mysqli(
-    $servername,
-    $username,
-    $password,
-    $database,
-    $socket
-);
+// leave out port & socket — mysqli will use XAMPP’s defaults
+$conn = new mysqli($servername, $username, $password, $database);
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-?>
