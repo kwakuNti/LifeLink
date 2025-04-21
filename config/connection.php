@@ -1,7 +1,7 @@
 <?php
 // config/connection.php
 
-$servername = "127.0.0.1";
+$servername = "localhost";
 $username   = "root";
 $password   = "Nti2702";
 $database   = "life";
