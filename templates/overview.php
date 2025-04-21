@@ -112,7 +112,7 @@ function generatePatientCode($recipient_id) {
 // Add this function near the top of your file, after the other database queries
 // Function to get blockchain data for this donor
 function getBlockchainData($donorId) {
-    $scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
+    $scriptPath = "../blockchain/query-chaincode.sh";
     
     if (!file_exists($scriptPath)) {
         return ["error" => "Query script not found."];
@@ -163,7 +163,7 @@ if (!empty($recent_matches)) {
           // Log the query for debugging
           file_put_contents("/tmp/overviewx_debug.log", "Querying for match ID: $matchId\n", FILE_APPEND);
           
-          $scriptPath = "/Applications/MAMP/htdocs/Lifelink/blockchain/query-chaincode.sh";
+          $scriptPath = "../blockchain/query-chaincode.sh";
           if (!file_exists($scriptPath)) {
               file_put_contents("/tmp/overviewx_debug.log", "Script not found: $scriptPath\n", FILE_APPEND);
               continue;

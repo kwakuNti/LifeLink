@@ -70,36 +70,41 @@ import os
 import mysql.connector
 from mysql.connector import Error
 
-def connect_to_database():
-    """
-    First tries to connect over the XAMPP unix socket.
-    If that fails, falls back to a TCP host/port connect (for your tests).
-    """
-    cfg = {
-        'user': os.environ.get('DB_USER', 'root'),
-        'password': os.environ.get('DB_PASS', 'root'),
-        'database': os.environ.get('DB_NAME', 'life'),
-    }
+# def connect_to_database():
+#     try:
+#         # always read your usual 4 from env
+#         cfg = {
+#             'user'    : os.environ.get('DB_USER', 'root'),
+#             'password': os.environ.get('DB_PASS', 'root'),
+#             'database': os.environ.get('DB_NAME', 'life'),
+#         }
 
-    # 1) Try the socket:
+#         # if they gave us a socket, use it; otherwise use TCP host
+#         db_socket = os.environ.get('DB_SOCKET')
+#         if db_socket:
+#             # remove host so connector won't try TCP
+#             # (not strictly required, but clearer)
+#             cfg.pop('host', None)
+#             cfg['unix_socket'] = db_socket
+#         else:
+#             cfg['host'] = os.environ.get('DB_HOST', 'localhost')
+
+#         return mysql.connector.connect(**cfg)
+
+#     except Error as e:
+#         print(f"Error connecting to MySQL: {e}")
+#         return None
+
+def connect_to_database():
     try:
-        # hardcode the XAMPP socket path
         return mysql.connector.connect(
-            **cfg,
+            user='root',
+            password='Nti2702',
+            database='life',
             unix_socket='/opt/lampp/var/mysql/mysql.sock'
         )
-    except Error as sock_err:
-        print(f"Socket connect failed (trying TCP): {sock_err}")
-
-    # 2) Fall back to TCP
-    try:
-        return mysql.connector.connect(
-            **cfg,
-            host=os.environ.get('DB_HOST', '127.0.0.1'),
-            port=int(os.environ.get('DB_PORT', 3306))
-        )
-    except Error as tcp_err:
-        print(f"TCP connect also failed: {tcp_err}")
+    except Error as e:
+        print(f"Error connecting to MySQL: {e}")
         return None
 
 
