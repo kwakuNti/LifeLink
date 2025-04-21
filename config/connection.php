@@ -2,7 +2,6 @@
 // config/connection.php
 
 $servername = "127.0.0.1";
-$port       = 3306;
 $username   = "root";
 $password   = "Nti2702";
 $database   = "life";
@@ -13,7 +12,6 @@ $conn = new mysqli(
     $username,
     $password,
     $database,
-    $port,
     $socket
 );
 
