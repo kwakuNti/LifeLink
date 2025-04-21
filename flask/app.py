@@ -609,3 +609,8 @@ def health_check():
 
 # if __name__ == '__main__':
 #     app.run(debug=True, host='', port=5000)
+if __name__ == "__main__":
+    context = ('/etc/letsencrypt/live/api.lifelink.ink/fullchain.pem',
+               '/etc/letsencrypt/live/api.lifelink.ink/privkey.pem')
+    app.run(host='127.0.0.1', port=5000, ssl_context=context, debug=False)
+
