@@ -2,10 +2,10 @@
 // config/connection.php
 
 // XAMPP MySQL credentials
-$servername = "127.0.0.1";  // force TCP
-$port       = 3306;         // default MySQL port
+$servername = "127.0.0.1";  // force TCP (so we don’t accidentally try the system socket)
+$port       = 3306;         // XAMPP’s MySQL port
 $username   = "root";
-$password   = "";           // XAMPP root has no password
+$password   = "Nti2702";    // your new root password
 $database   = "life";
 
 // Create connection over TCP
