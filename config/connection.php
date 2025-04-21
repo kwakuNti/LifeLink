@@ -1,21 +1,22 @@
 <?php
 // config/connection.php
 
-// XAMPP MySQL credentials
-$servername = "localhost";  // force TCP (so we don’t accidentally try the system socket)
+$servername = "127.0.0.1";
+$port       = 3306;
 $username   = "root";
-$password   = "Nti2702";    // your new root password
+$password   = "Nti2702";
 $database   = "life";
+$socket     = "/opt/lampp/var/mysql/mysql.sock";
 
-// Create connection over TCP
 $conn = new mysqli(
     $servername,
     $username,
     $password,
     $database,
+    $port,
+    $socket
 );
 
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
