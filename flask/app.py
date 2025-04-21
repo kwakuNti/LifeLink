@@ -612,17 +612,33 @@ def api_determine_kidney_cluster():
         return jsonify({'error': str(e)}), 500
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    status = {
-        'status': 'ok',
-        'models_loaded': {
-            'kidney_outcome_model': kidney_model is not None,
-            'liver_outcome_model': liver_model is not None,
-            'kidney_kmeans_model': kidney_kmeans is not None,
-            'liver_kmeans_model': liver_kmeans is not None,
-            'scaler_candidate': kidney_scaler is not None and liver_scaler is not None
-        }
-    }
-    return jsonify(status)
+    # check models
+    models_ok = all([
+        kidney_model is not None,
+        liver_model is not None,
+        kidney_kmeans is not None,
+        liver_kmeans is not None,
+        kidney_scaler is not None and liver_scaler is not None
+    ])
+    # check DB
+    db_status = 'down'
+    try:
+        conn = connect_to_database()
+        if conn and conn.is_connected():
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+            db_status = 'up'
+            cursor.close()
+            conn.close()
+    except Exception:
+        db_status = 'down'
+
+    return jsonify({
+        'status': 'ok' if models_ok and db_status=='up' else 'degraded',
+        'models_loaded': models_ok,
+        'db': db_status
+    })
 
 # if __name__ == '__main__':
 #     app.run(debug=True, host='', port=5000)
