@@ -69,15 +69,16 @@ liver_outcome_features = [
 def connect_to_database():
     try:
         connection = mysql.connector.connect(
-            host=os.environ.get('DB_HOST', 'localhost'),
-            user=os.environ.get('DB_USER', 'root'),
-            password=os.environ.get('DB_PASS', 'root'),
-            database=os.environ.get('DB_NAME', 'life')
+            user='root',
+            password='root',         # or whatever your XAMPP MySQL root pw is
+            database='life',
+            unix_socket='/opt/lampp/var/mysql/mysql.sock'
         )
         return connection
     except Error as e:
-        print(f"Error connecting to MySQL: {e}")
+        print("DB connection error:", e)
         return None
+
 
 ###############################################
 # HELPER FUNCTIONS
