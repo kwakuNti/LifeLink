@@ -500,7 +500,7 @@ def api_confirm_match():
         blockchain_match_id = f"match_{match_id}"
 
         # Define the path to your bash script (adjust the path if necessary)
-        bash_script = "/Applications/MAMP/htdocs/Lifelink/blockchain/invoke-chaincode.sh"
+        bash_script = "../blockchain/invoke-chaincode.sh"
         # We'll call the function "CreateMatch" with:
         #   blockchain_match_id, donor_id, recipient_id, match_score, status
         cmd = [
