@@ -3,8 +3,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+
 // Check if vendor autoload exists
-$autoloadPath = 'vendor/autoload.php';
+$autoloadPath = '../vendor/autoload.php';
 if (!file_exists($autoloadPath)) {
     die("Vendor autoload file not found. Check path: $autoloadPath");
 }
