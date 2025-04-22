@@ -855,7 +855,7 @@ if (!isset($_SESSION['user_id'])) {
     blood_type: document.getElementById('blood_type_cluster').value
   };
 
-  fetch('http://localhost:5000/api/determine_liver_cluster', {
+  fetch('/api/determine_kidney_cluster', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
