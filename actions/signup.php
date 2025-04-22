@@ -7,6 +7,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 require '../vendor/autoload.php';
 
+// Load email configuration from separate file
+require_once '../config/email_config.php';
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $firstName = trim($_POST["firstName"]);
     $lastName = trim($_POST["lastName"]);
@@ -60,23 +63,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Send OTP email using PHPMailer
         $mail = new PHPMailer(true);
         try {
-            // SMTP Configuration
+            // SMTP Configuration - Using constants from email_config.php
             $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
+            $mail->Host = SMTP_HOST;
             $mail->SMTPAuth = true;
-            $mail->Username = 'cliffco24@gmail.com';
-            $mail->Password = 'nzqo jtlf kuau xtus'; // Use App Password
+            $mail->Username = SMTP_USERNAME;
+            $mail->Password = SMTP_PASSWORD;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-
+            $mail->Port = SMTP_PORT;
+            
+            // Set higher timeout for SMTP connection
+            $mail->Timeout = 60; // 60 seconds timeout
+            
+            // Add proper headers to avoid spam filters
+            $mail->XMailer = 'LifeLink Mailer';
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
+            $mail->addCustomHeader('List-Unsubscribe', '<mailto:unsubscribe@lifelink.com>');
+            
             // Email Headers
-            $mail->setFrom('cliffco24@gmail.com', 'LifeLink Support');
-            $mail->addAddress($email);
-            $mail->addReplyTo('support@lifelink.com', 'LifeLink Support');
-            $mail->Subject = "Verify Your Account - LifeLink";
+            $mail->setFrom(EMAIL_FROM, EMAIL_FROM_NAME);
+            $mail->addAddress($email, $fullName);
+            $mail->addReplyTo(EMAIL_REPLY_TO, EMAIL_FROM_NAME);
+            $mail->Subject = "Your LifeLink Verification Code";
             $mail->isHTML(true);
 
-            // Email Content
+            // Email Content - Simplified for better deliverability
             $mail->Body = "
                 <!DOCTYPE html>
                 <html lang='en'>
@@ -85,12 +97,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
                     <title>Verify Your Account</title>
                     <style>
-                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
                         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
                         .header { background-color: #4A89DC; color: white; padding: 10px 20px; text-align: center; }
-                        .content { padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; }
+                        .content { padding: 20px; background-color: #ffffff; border: 1px solid #ddd; }
                         .otp-code { font-size: 24px; font-weight: bold; color: #4A89DC; text-align: center; 
-                                    padding: 10px; margin: 20px 0; background-color: #eef2f8; border-radius: 4px; }
+                                    padding: 10px; margin: 20px 0; background-color: #f5f5f5; border-radius: 4px; }
                         .footer { font-size: 12px; text-align: center; margin-top: 20px; color: #777; }
                     </style>
                 </head>
@@ -101,16 +113,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                         <div class='content'>
                             <p>Hello $firstName,</p>
-                            <p>Thank you for creating an account with LifeLink. To complete your registration, please verify your email address by entering the OTP code below:</p>
+                            <p>Please use the verification code below to complete your registration:</p>
                             
                             <div class='otp-code'>$otp</div>
                             
-                            <p>This code will expire in 15 minutes for security reasons.</p>
-                            <p>If you did not create this account, please disregard this email.</p>
+                            <p>This code will expire in 15 minutes.</p>
+                            <p>If you didn't create an account with us, you can safely ignore this email.</p>
                         </div>
                         <div class='footer'>
-                            <p>Need help? Contact <a href='mailto:support@lifelink.com'>support@lifelink.com</a></p>
-                            <p>&copy; " . date('Y') . " LifeLink. All rights reserved.</p>
+                            <p>© " . date('Y') . " LifeLink | <a href='mailto:support@lifelink.com'>Contact Support</a></p>
                         </div>
                     </div>
                 </body>
@@ -118,22 +129,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ";
             
             // Plain text version for email clients that don't support HTML
-            $mail->AltBody = "Hello $firstName,\n\nThank you for creating an account with LifeLink. Your OTP code is: $otp\n\nPlease enter this code to verify your email. This code will expire in 15 minutes.\n\nIf you did not create this account, please disregard this email.\n\nNeed help? Contact support@lifelink.com";
+            $mail->AltBody = "Hello $firstName,\n\nYour LifeLink verification code is: $otp\n\nThis code will expire in 15 minutes.\n\nIf you didn't create an account with us, you can safely ignore this email.\n\n© " . date('Y') . " LifeLink";
+            
+            // Log before sending for debugging
+            error_log("Attempting to send verification email to: $email");
+            
             if ($mail->send()) {
+                error_log("Email successfully sent to: $email");
                 // Redirect to OTP verification page
-                header("Location: ../templates/verify-otp?status=success&message=OTP sent to your email.");
+                header("Location: ../templates/verify-otp?status=success&message=Verification code sent to your email");
                 exit();
             } else {
-                header("Location: ../templates/sign-up?status=error&message=Failed to send OTP email.");
+                error_log("Email send failed: " . $mail->ErrorInfo);
+                header("Location: ../templates/sign-up?status=error&message=Failed to send verification email");
                 exit();
             }
         } catch (Exception $e) {
-            $errorMessage = urlencode("Mailer Error: " . str_replace(["\r", "\n"], '', $mail->ErrorInfo));
+            error_log("Mailer Error: " . $e->getMessage());
+            $errorMessage = urlencode("Verification email could not be sent. Please try again later.");
             header("Location: ../templates/sign-up?status=error&message=$errorMessage");
             exit();
         }
     } else {
-        header("Location: ../templates/sign-up?status=error&message=Registration failed. Try again.");
+        header("Location: ../templates/sign-up?status=error&message=Registration failed. Please try again.");
         exit();
     }
 }
