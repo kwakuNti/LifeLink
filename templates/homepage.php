@@ -116,12 +116,11 @@
         
         <!-- Resources -->
         <div class="footer-column">
-            <h4>Resources</h4>
+            <h4>Policies</h4>
             <ul>
-                <li><a href="#">FAQs</a></li>
-                <li><a href="#">Blog</a></li>
-                <li><a href="#">Events</a></li>
-                <li><a href="#">Partners</a></li>
+                <li><a href="privacy-policy">Privacy Policy</a></li>
+                <li><a href="terms-of-service">Terms of service</a></li>
+
             </ul>
         </div>
         
