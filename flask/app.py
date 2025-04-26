@@ -70,42 +70,42 @@ import os
 import mysql.connector
 from mysql.connector import Error
 
-def connect_to_database():
-    try:
-        # always read your usual 4 from env
-        cfg = {
-            'user'    : os.environ.get('DB_USER', 'root'),
-            'password': os.environ.get('DB_PASS', 'root'),
-            'database': os.environ.get('DB_NAME', 'life'),
-        }
-
-        # if they gave us a socket, use it; otherwise use TCP host
-        db_socket = os.environ.get('DB_SOCKET')
-        if db_socket:
-            # remove host so connector won't try TCP
-            # (not strictly required, but clearer)
-            cfg.pop('host', None)
-            cfg['unix_socket'] = db_socket
-        else:
-            cfg['host'] = os.environ.get('DB_HOST', 'localhost')
-
-        return mysql.connector.connect(**cfg)
-
-    except Error as e:
-        print(f"Error connecting to MySQL: {e}")
-        return None
-
 # def connect_to_database():
 #     try:
-#         return mysql.connector.connect(
-#             user='root',
-#             password='Nti2702',
-#             database='life',
-#             unix_socket='/opt/lampp/var/mysql/mysql.sock'
-#         )
+#         # always read your usual 4 from env
+#         cfg = {
+#             'user'    : os.environ.get('DB_USER', 'root'),
+#             'password': os.environ.get('DB_PASS', 'root'),
+#             'database': os.environ.get('DB_NAME', 'life'),
+#         }
+
+#         # if they gave us a socket, use it; otherwise use TCP host
+#         db_socket = os.environ.get('DB_SOCKET')
+#         if db_socket:
+#             # remove host so connector won't try TCP
+#             # (not strictly required, but clearer)
+#             cfg.pop('host', None)
+#             cfg['unix_socket'] = db_socket
+#         else:
+#             cfg['host'] = os.environ.get('DB_HOST', 'localhost')
+
+#         return mysql.connector.connect(**cfg)
+
 #     except Error as e:
 #         print(f"Error connecting to MySQL: {e}")
 #         return None
+
+def connect_to_database():
+    try:
+        return mysql.connector.connect(
+            user='root',
+            password='Nti2702',
+            database='life',
+            unix_socket='/opt/lampp/var/mysql/mysql.sock'
+        )
+    except Error as e:
+        print(f"Error connecting to MySQL: {e}")
+        return None
 
 
 ###############################################
