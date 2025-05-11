@@ -164,6 +164,10 @@ if (isset($_POST['predict_success']) && isset($_POST['recipient_id'])) {
   <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
+  <!--  ▾  put these AFTER your other <script> tags in the <head>  -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <link rel="manifest" href="../favicon_io/site.webmanifest">
   <title>LifeLink - Donor Match Finder</title>
   <style>
@@ -1238,6 +1242,36 @@ $stmtHospital->close();
               snackbar.className = snackbar.className.replace("show", "");
           }, 3000);
       }
+      /* ------------------------------------------------------------------
+      Confetti helper – full-screen, multi-burst celebration
+------------------------------------------------------------------ */
+function triggerConfetti() {
+  const duration = 3 * 1000;          // 3 s total
+  const animationEnd = Date.now() + duration;
+  const defaults = { startVelocity: 25, spread: 360, ticks: 60, zIndex: 9999 };
+
+  function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  const interval = setInterval(function () {
+    const timeLeft = animationEnd - Date.now();
+
+    if (timeLeft <= 0) {
+      return clearInterval(interval);
+    }
+
+    confetti(Object.assign({}, defaults, {
+      particleCount: 50,
+      origin: {
+        x: randomInRange(0.1, 0.9),
+        y: Math.random() - 0.2   // a bit higher
+      },
+      colors: ['#4070E0', '#34a853', '#fbbc05', '#ea4335']
+    }));
+  }, 250);
+}
+
 
       // Attach AJAX event listener for Confirm Match forms
       document.querySelectorAll('.confirm-match-form').forEach(form => {
@@ -1266,8 +1300,13 @@ $stmtHospital->close();
               .then(response => response.json())
               .then(result => {
                   if (result.match_id) {
-                      showSnackbar("Match confirmed successfully! You can now proceed with transplant confirmation.", "success");
-                      form.innerHTML = `<div class="btn-predict" style="margin-top: 10px;">Match confirmed (ID: ${result.match_id})</div>`;
+                    triggerConfetti();
+Swal.fire({
+  icon: 'success',
+  title: 'Match confirmed!',
+  text : 'Great news – the transplant team will reach out to you soon.',
+  confirmButtonColor: '#4070E0'
+});                      form.innerHTML = `<div class="btn-predict" style="margin-top: 10px;">Match confirmed (ID: ${result.match_id})</div>`;
                       // Optionally, reload the page to update the prediction section
                       setTimeout(() => {
                           window.location.reload();
