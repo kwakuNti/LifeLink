@@ -113,11 +113,21 @@ session_start();
 }
 
 .snackbar.show {
-    visibility: visible;
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-}
-
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    
+    .snackbar.error {
+      background-color: #d32f2f;
+    }
+    
+    .snackbar.success {
+      background-color: #388e3c;
+    }
+    
+    .snackbar.warning {
+      background-color: #f57c00;
+    }
 @-webkit-keyframes fadein {
     from {top: 0; opacity: 0;} 
     to {top: 30px; opacity: 1;}
