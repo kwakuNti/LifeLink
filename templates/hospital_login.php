@@ -95,59 +95,60 @@ session_start();
       text-decoration: underline;
     }
 
-
-/* Snackbar styles */
-.snackbar {
-    visibility: hidden;
-    min-width: 250px;
-    background-color: #111;
-    color: #fff;
-    text-align: center;
-    border-radius: 2px;
-    padding: 16px;
-    position: fixed;
-    z-index: 1;
-    left: 30px; /* Position from the right */
-    top: 30px;   /* Position from the top */
-    font-size: 17px;
-}
-
-.snackbar.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    /* Snackbar styles */
+    .snackbar {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #111;
+        color: #fff;
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1000;
+        left: 30px; /* Position from the left */
+        top: 30px;   /* Position from the top */
+        font-size: 17px;
     }
-    
+
+    .snackbar.show {
+        visibility: visible;
+        -webkit-animation: fadein 0.5s;
+        animation: fadein 0.5s;
+    }
+
+    /* Different colored snackbars */
     .snackbar.error {
-      background-color: #d32f2f;
+        background-color: #d32f2f;
     }
     
     .snackbar.success {
-      background-color: #388e3c;
+        background-color: #388e3c;
     }
     
     .snackbar.warning {
-      background-color: #f57c00;
+        background-color: #f57c00;
     }
-@-webkit-keyframes fadein {
-    from {top: 0; opacity: 0;} 
-    to {top: 30px; opacity: 1;}
-}
 
-@keyframes fadein {
-    from {top: 0; opacity: 0;}
-    to {top: 30px; opacity: 1;}
-}
+    @-webkit-keyframes fadein {
+        from {top: 0; opacity: 0;} 
+        to {top: 30px; opacity: 1;}
+    }
 
-@-webkit-keyframes fadeout {
-    from {top: 30px; opacity: 1;} 
-    to {top: 0; opacity: 0;}
-}
+    @keyframes fadein {
+        from {top: 0; opacity: 0;}
+        to {top: 30px; opacity: 1;}
+    }
 
-@keyframes fadeout {
-    from {top: 30px; opacity: 1;}
-    to {top: 0; opacity: 0;}
-}
+    @-webkit-keyframes fadeout {
+        from {top: 30px; opacity: 1;} 
+        to {top: 0; opacity: 0;}
+    }
 
+    @keyframes fadeout {
+        from {top: 30px; opacity: 1;}
+        to {top: 0; opacity: 0;}
+    }
   </style>
 </head>
 <body onload="initializePage()">
@@ -191,7 +192,7 @@ session_start();
       <!-- Submit Button -->
       <input type="submit" class="btn" value="Login">
     </form>
-    <div id="snackbar"></div>
+    <div id="snackbar">This is a snackbar message</div>
   </div>
   
   <script>
@@ -231,25 +232,62 @@ session_start();
         showSnackbar("Invalid hospital selection.", "error");
         document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
       }
+      
+      // Test snackbar on page load
+      setTimeout(function() {
+        showSnackbar("Welcome to hospital login", "success");
+      }, 1000);
     }
     
     function showSnackbar(message, type) {
+      console.log("Showing snackbar:", message, type); // Debug message
+      
       const snackbar = document.getElementById('snackbar');
+      
+      // Clear any existing classes and timeouts
+      snackbar.className = '';
+      clearTimeout(snackbar.snackbarTimer);
+      
+      // Set the message
       snackbar.textContent = message;
-      snackbar.className = 'snackbar show ' + type;
-      setTimeout(() => {
-        snackbar.className = snackbar.className.replace('show ' + type, '');
+      
+      // Add show and type classes
+      snackbar.className = 'snackbar show ' + (type || '');
+      
+      // Set timeout to hide the snackbar
+      snackbar.snackbarTimer = setTimeout(function() {
+        snackbar.className = snackbar.className.replace("show", "");
       }, 3000);
     }
     
     function validateHospitalLogin() {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
-      if (!username || !password) {
-        showSnackbar("Please enter username and password.", "error");
+      
+      if (!username) {
+        showSnackbar("Please enter your username", "error");
         return false;
       }
+      
+      if (!password) {
+        showSnackbar("Please enter your password", "error");
+        return false;
+      }
+      
+      // Manually check password requirements
+      const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+      if (!passwordPattern.test(password)) {
+        showSnackbar("Password must meet all requirements", "error");
+        return false;
+      }
+      
+      showSnackbar("Logging in...", "success");
       return true;
+    }
+    
+    // Function to test the snackbar
+    function testSnackbar() {
+      showSnackbar("This is a test message", "warning");
     }
   </script>
   
