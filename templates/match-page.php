@@ -1310,7 +1310,7 @@ Swal.fire({
                       // Optionally, reload the page to update the prediction section
                       setTimeout(() => {
                           window.location.reload();
-                      }, 1500);
+                      }, 4000);
                   } else if (result.error) {
                       showSnackbar("Error: " + result.error, "error");
                       submitButton.disabled = false;
