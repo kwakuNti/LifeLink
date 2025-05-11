@@ -5,27 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../templates/login?status=error&message=Please log in first");
     exit();
 }
-// 2) Include your DB connection
-require_once __DIR__ . '/../config/connection.php';
-
-$userId = $_SESSION['user_id'];
-
-// 3) Check if this donor already has an organ_type set
-$stmt = $conn->prepare("SELECT organ_type FROM donors WHERE user_id = ?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($row = $result->fetch_assoc()) {
-    if (!empty($row['organ_type'])) {
-        // Already chosen—skip this page and go straight to donor overview
-        header("Location: donor_medical_info.php?status=success&message=You have already selected an organ type. Redirecting to your profile.");
-        exit();
-    }
-}
-$stmt->close();
-
-
 ?>
 
 
