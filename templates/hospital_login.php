@@ -192,7 +192,7 @@ session_start();
       <!-- Submit Button -->
       <input type="submit" class="btn" value="Login">
     </form>
-    <div id="snackbar">This is a snackbar message</div>
+    <div id="snackbar"></div>
   </div>
   
   <script>
@@ -207,8 +207,9 @@ session_start();
 
     // Use localStorage to persist hospital_id across page reloads or error redirects
     function initializePage() {
-      // Try to get hospital_id from URL
       const urlParams = new URLSearchParams(window.location.search);
+      
+      // Process hospital ID
       let hospitalId = urlParams.get('hospital_id');
       
       // If not in URL, try localStorage
@@ -225,18 +226,30 @@ session_start();
       // If hospitalId is valid, update page details
       if (hospitalId && hospitalData[hospitalId]) {
         const hospital = hospitalData[hospitalId];
-        // document.getElementById('hospitalDisplay').textContent = hospital.name;
         document.body.style.backgroundColor = hospital.themeColor;
         document.getElementById('formTitle').textContent = "Welcome to " + hospital.name;
       } else {
-        showSnackbar("Invalid hospital selection.", "error");
         document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
       }
       
-      // Test snackbar on page load
-      setTimeout(function() {
-        showSnackbar("Welcome to hospital login", "success");
-      }, 1000);
+      // Check for status and message parameters in URL
+      const status = urlParams.get('status');
+      const message = urlParams.get('message');
+      
+      // Display snackbar if status and message are present
+      if (status && message) {
+        // Decode URL-encoded message
+        const decodedMessage = decodeURIComponent(message);
+        showSnackbar(decodedMessage, status);
+        
+        // Clean URL by removing status and message parameters
+        if (window.history && window.history.replaceState) {
+          // Create a new URL without the status and message parameters
+          const cleanUrl = window.location.pathname + 
+                (hospitalId ? '?hospital_id=' + hospitalId : '');
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      }
     }
     
     function showSnackbar(message, type) {
@@ -281,13 +294,12 @@ session_start();
         return false;
       }
       
-      showSnackbar("Logging in...", "success");
       return true;
     }
     
-    // Function to test the snackbar
-    function testSnackbar() {
-      showSnackbar("This is a test message", "warning");
+    // Function to test the snackbar (can be called from console for testing)
+    function testSnackbar(message, type) {
+      showSnackbar(message || "Test message", type || "success");
     }
   </script>
   
