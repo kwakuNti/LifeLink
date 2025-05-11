@@ -61,8 +61,6 @@ session_start();
         <div class="div">
           <h5>Password</h5>
           <input type="password" class="input" id="password" name="password"
-                 pattern="^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$"
-                 title="Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character"
                  required>
         </div>
       </div>
