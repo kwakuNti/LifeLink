@@ -1269,7 +1269,7 @@ p {
                 </div>
                 
                 <div class="match-compatibility">
-                <?php echo number_format($transplant['match_score'], 1); ?>% Match
+                <?php echo number_format($match['match_score'], 1); ?>% Match
                 </div>
                 
                 <div class="match-details">
@@ -1337,9 +1337,9 @@ p {
                             <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['bloodType'] ?? 'N/A'); ?></div>
                             <div class="blockchain-stat-label">Blood Type</div>
                         </div>
-                        <?php if (isset($blockchainData['kidney_cluster'])): ?>
+                        <?php if (isset($blockchainData['kidneyCluster'])): ?>
                         <div class="blockchain-stat">
-                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['kidney_cluster'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['kidneyCluster'] ?? 'N/A'); ?></div>
                             <div class="blockchain-stat-label">Kidney Cluster</div>
                         </div>
                         <?php endif; ?>
@@ -1349,9 +1349,9 @@ p {
                             <div class="blockchain-stat-label">GFR</div>
                         </div>
                         <?php endif; ?>
-                        <?php if (isset($blockchainData['bmi_tcr'])): ?>
+                        <?php if (isset($blockchainData['bmiTcr'])): ?>
                         <div class="blockchain-stat">
-                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['bmi_tcr'] ?? 'N/A'); ?></div>
+                            <div class="blockchain-stat-value"><?php echo htmlspecialchars($blockchainData['bmiTcr'] ?? 'N/A'); ?></div>
                             <div class="blockchain-stat-label">BMI</div>
                         </div>
                         <?php endif; ?>
