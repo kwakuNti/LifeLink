@@ -94,9 +94,10 @@ session_start();
     a:hover {
       text-decoration: underline;
     }
-    
-    /* Snackbar CSS - Adding here to ensure it works */
-   .snackbar {
+
+
+/* Snackbar styles */
+.snackbar {
     visibility: hidden;
     min-width: 250px;
     background-color: #111;
@@ -110,25 +111,14 @@ session_start();
     top: 30px;   /* Position from the top */
     font-size: 17px;
 }
-    
-    .snackbar.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-    
-    .snackbar.error {
-      background-color: #d32f2f;
-    }
-    
-    .snackbar.success {
-      background-color: #388e3c;
-    }
-    
-    .snackbar.warning {
-      background-color: #f57c00;
-    }
-    
-    @-webkit-keyframes fadein {
+
+.snackbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
     from {top: 0; opacity: 0;} 
     to {top: 30px; opacity: 1;}
 }
@@ -231,20 +221,14 @@ session_start();
         showSnackbar("Invalid hospital selection.", "error");
         document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
       }
-      
-      // Test the snackbar on page load (remove this in production)
-      setTimeout(() => {
-        showSnackbar("Welcome to the hospital login system", "success");
-      }, 1000);
     }
     
     function showSnackbar(message, type) {
-      console.log("Showing snackbar:", message, type); // Debug line
       const snackbar = document.getElementById('snackbar');
       snackbar.textContent = message;
       snackbar.className = 'snackbar show ' + type;
       setTimeout(() => {
-        snackbar.className = snackbar.className.replace('show', '');
+        snackbar.className = snackbar.className.replace('show ' + type, '');
       }, 3000);
     }
     
@@ -255,14 +239,6 @@ session_start();
         showSnackbar("Please enter username and password.", "error");
         return false;
       }
-      // Test the password pattern manually here
-      const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-      if (!passwordPattern.test(password)) {
-        showSnackbar("Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character", "error");
-        return false;
-      }
-      showSnackbar("Form validated successfully!", "success");
-      // Return true to continue with form submission or false to stop for testing
       return true;
     }
   </script>
