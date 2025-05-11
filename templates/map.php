@@ -549,25 +549,7 @@ body {
       </section>
     </main>
 
-<!-- Optional: Hidden manual location input form that's revealed when needed -->
-<div id="manual-location-form" style="display:none;">
-  <div class="card">
-    <div class="card-header">
-      <h3>Enter Your Location</h3>
-    </div>
-    <div class="card-body">
-      <div class="input-group">
-        <label for="manual-lat">Latitude:</label>
-        <input id="manual-lat" type="number" class="form-control" placeholder="e.g. 5.6037" step="0.0001">
-      </div>
-      <div class="input-group">
-        <label for="manual-lng">Longitude:</label>
-        <input id="manual-lng" type="number" class="form-control" placeholder="e.g. -0.1870" step="0.0001">
-      </div>
-      <button id="submit-manual-location" class="btn primary-btn">Submit Location</button>
-    </div>
-  </div>
-</div>
+
 
   <div id="snackbar"></div>
 
