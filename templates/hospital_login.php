@@ -1,130 +1,261 @@
 <?php
+// Start session if needed for other purposes
 session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="apple-touch-icon" href="../favicon_io/apple-touch-icon.png" sizes="180x180">
-  <link rel="icon" type="image/png" href="../favicon_io/favicon-32x32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="../favicon_io/favicon-16x16.png" sizes="16x16">
+  <link rel="apple-touch-icon" sizes="180x180" href="../favicon_io/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon_io/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon_io/favicon-16x16.png">
   <link rel="manifest" href="../favicon_io/site.webmanifest">
   <title>Hospital Login</title>
-
-  <!-- external css -->
-  <link rel="stylesheet" href="../public/css/h-login.css">
+  <link rel="stylesheet" type="text/css" href="../public/css/h-login.css">
   <link rel="stylesheet" href="../public/css/homepage.css">
   <link rel="stylesheet" href="../public/css/snackbar.css">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-  /* =============== page-specific minimal styling =============== */
-  .container{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh}
-  .logo img{width:260px}
-  .form-title{font-family:'Poppins',sans-serif;font-size:24px;font-weight:700;margin:20px 0;text-align:center}
-  .input-div{max-width:400px;width:100%;margin:12px 0;position:relative;border-bottom:2px solid #d9d9d9}
-  .input-div .input{width:100%;height:40px;border:none;background:none;font-size:16px}
-  .btn{margin-top:20px;max-width:460px;width:100%;padding:10px;border:none;border-radius:5px;background:#333;color:#fff;font-size:16px;cursor:pointer}
-  .btn:hover{background:#555}
-  a{display:block;margin-top:8px;font-size:14px;color:#333;text-decoration:none}
-  a:hover{text-decoration:underline}
-
-  /* fallback snackbar   (snackbar.css will override) */
-  #snackbar{position:fixed;left:30px;top:30px;z-index:9999;min-width:250px;padding:16px;border-radius:6px;background:#111;color:#fff;font-size:16px;visibility:hidden;opacity:0;transition:opacity .3s}
-  #snackbar.show{visibility:visible;opacity:1}
-  #snackbar.success{background:#10b981}
-  #snackbar.error{background:#ef4444}
-  #snackbar.warning{background:#f59e0b}
+    /* Basic styling as in the organ selector page */
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .logo img {
+      width: 300px;
+    }
+    .form-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    /* Input field styling similar to organ selector */
+    .input-div {
+      width: 100%;
+      max-width: 400px;
+      margin: 10px auto;
+      position: relative;
+      border-bottom: 2px solid #d9d9d9;
+    }
+    .input-div.one .div,
+    .input-div.pass .div {
+      height: 45px;
+    }
+    .input-div.one .i,
+    .input-div.pass .i {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .input-div .div h5 {
+      font-size: 16px;
+      color: #999;
+      margin: 0;
+    }
+    .input-div .div .input {
+      width: 100%;
+      height: 40px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      background: none;
+      color: #333;
+    }
+    .btn {
+      margin-top: 20px;
+      background-color: #333;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+    }
+    .btn:hover {
+      background-color: #555;
+    }
+    a {
+      font-size: 14px;
+      color: #333;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Snackbar CSS - Adding here to ensure it works */
+    .snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+    }
+    
+    .snackbar.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    
+    .snackbar.error {
+      background-color: #d32f2f;
+    }
+    
+    .snackbar.success {
+      background-color: #388e3c;
+    }
+    
+    .snackbar.warning {
+      background-color: #f57c00;
+    }
+    
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+    
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
   </style>
 </head>
-
 <body onload="initializePage()">
   <div class="container">
+    <!-- Hospital Info (icon and name) -->
     <div class="logo">
-      <p id="hospitalDisplay" style="margin-bottom:20px;font-family:'Poppins',sans-serif;font-size:18px;color:#333"></p>
+      <p id="hospitalDisplay" style="font-family: 'Poppins', sans-serif; font-size: 18px; color: #333; margin-bottom: 20px;"></p>
       <img src="../assets/images/icon-hospital.png" alt="Hospital Icon">
     </div>
-
     <h2 class="form-title" id="formTitle">Hospital Login</h2>
-
     <form action="../actions/hospital_login.php" method="POST" onsubmit="return validateHospitalLogin()">
-      <input type="hidden" id="hospital_id" name="hospital_id">
-
+      <!-- Hidden input to persist hospital_id -->
+      <input type="hidden" id="hospital_id" name="hospital_id" value="">
+      <!-- Username -->
       <div class="input-div one">
+        <div class="i">
+          <i class="fas fa-user"></i>
+        </div>
         <div class="div">
           <h5>Username</h5>
           <input type="text" class="input" id="username" name="username" required>
         </div>
       </div>
-
+      <!-- Password -->
       <div class="input-div pass">
+        <div class="i">
+          <i class="fas fa-lock"></i>
+        </div>
         <div class="div">
           <h5>Password</h5>
           <input type="password" class="input" id="password" name="password"
+                 pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+                 title="Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character" 
                  required>
         </div>
       </div>
-
+      <!-- Forgot Password link -->
       <a href="h-forgot-password.php">Forgot Password?</a>
       <a href="login">Back User Login</a>
 
+      <!-- Submit Button -->
       <input type="submit" class="btn" value="Login">
     </form>
-
     <div id="snackbar"></div>
   </div>
-
+  
   <script>
-  /* ---------- “database” of hospitals ---------- */
-  const hospitalData={
-    "1":{name:"Korle Bu Teaching Hospital",themeColor:"#fce4ec"},
-    "2":{name:"The Bank Hospital",themeColor:"#e8f5e9"},
-    "3":{name:"Komfo Anokye Teaching Hospital",themeColor:"#e3f2fd"},
-    "4":{name:"37 Military Hospital",themeColor:"#fff3e0"},
-    "5":{name:"UG Medical Centre (UGMC)",themeColor:"#f9fbe7"}
-  };
+    // Hardcoded mapping for hospital details (could be replaced with dynamic lookup)
+    const hospitalData = {
+      "1": { name: "Korle Bu Teaching Hospital", themeColor: "#fce4ec" },
+      "2": { name: "The Bank Hospital", themeColor: "#e8f5e9" },
+      "3": { name: "Komfo Anokye Teaching Hospital", themeColor: "#e3f2fd" },
+      "4": { name: "37 Military Hospital", themeColor: "#fff3e0" },
+      "5": { name: "University of Ghana Medical Centre (UGMC)", themeColor: "#f9fbe7" }
+    };
 
-  /* ---------- snackbar util (robust) ---------- */
-  function showSnackbar(msg,type='info'){
-    const bar=document.getElementById('snackbar');
-    bar.textContent=msg;
-    bar.classList.remove('success','error','warning','info','show');
-    bar.classList.add(type,'show');
-    clearTimeout(bar._timer);
-    bar._timer=setTimeout(()=>bar.classList.remove('show'),3000);
-  }
-
-  /* ---------- page init ---------- */
-  function initializePage(){
-    const url=new URLSearchParams(window.location.search);
-    let hid=url.get('hospital_id')||localStorage.getItem('hospital_id');
-    if(hid) localStorage.setItem('hospital_id',hid);
-    document.getElementById('hospital_id').value=hid||'';
-
-    if(hid && hospitalData[hid]){
-      const h=hospitalData[hid];
-      document.body.style.backgroundColor=h.themeColor;
-      document.getElementById('formTitle').textContent='Welcome to '+h.name;
-      document.getElementById('hospitalDisplay').textContent=h.name;
-    }else{
-      showSnackbar('Invalid hospital selection','error');
-      document.getElementById('hospitalDisplay').textContent='Unknown Hospital';
+    // Use localStorage to persist hospital_id across page reloads or error redirects
+    function initializePage() {
+      // Try to get hospital_id from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      let hospitalId = urlParams.get('hospital_id');
+      
+      // If not in URL, try localStorage
+      if (!hospitalId) {
+        hospitalId = localStorage.getItem('hospital_id');
+      } else {
+        // Save hospital_id to localStorage
+        localStorage.setItem('hospital_id', hospitalId);
+      }
+      
+      // Save hospital_id in the hidden input so it is submitted with the form
+      document.getElementById('hospital_id').value = hospitalId || "";
+      
+      // If hospitalId is valid, update page details
+      if (hospitalId && hospitalData[hospitalId]) {
+        const hospital = hospitalData[hospitalId];
+        // document.getElementById('hospitalDisplay').textContent = hospital.name;
+        document.body.style.backgroundColor = hospital.themeColor;
+        document.getElementById('formTitle').textContent = "Welcome to " + hospital.name;
+      } else {
+        showSnackbar("Invalid hospital selection.", "error");
+        document.getElementById('hospitalDisplay').textContent = "Unknown Hospital";
+      }
+      
+      // Test the snackbar on page load (remove this in production)
+      setTimeout(() => {
+        showSnackbar("Welcome to the hospital login system", "success");
+      }, 1000);
     }
-  }
-
-  /* ---------- form validation ---------- */
-  function validateHospitalLogin(){
-    const u=document.getElementById('username').value.trim(),
-          p=document.getElementById('password').value.trim();
-    if(!u || !p){
-      showSnackbar('Please enter username and password','error');
-      return false;
+    
+    function showSnackbar(message, type) {
+      console.log("Showing snackbar:", message, type); // Debug line
+      const snackbar = document.getElementById('snackbar');
+      snackbar.textContent = message;
+      snackbar.className = 'snackbar show ' + type;
+      setTimeout(() => {
+        snackbar.className = snackbar.className.replace('show', '');
+      }, 3000);
     }
-    return true;
-  }
+    
+    function validateHospitalLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      if (!username || !password) {
+        showSnackbar("Please enter username and password.", "error");
+        return false;
+      }
+      // Test the password pattern manually here
+      const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+      if (!passwordPattern.test(password)) {
+        showSnackbar("Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character", "error");
+        return false;
+      }
+      showSnackbar("Form validated successfully!", "success");
+      // Return true to continue with form submission or false to stop for testing
+      return true;
+    }
   </script>
-
-  <!-- keep any additional js you need -->
-  <script src="../public/js/login.js"></script>
+  
+  <script type="text/javascript" src="../public/js/login.js"></script>
 </body>
 </html>
