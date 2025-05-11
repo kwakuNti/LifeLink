@@ -1035,7 +1035,8 @@ $stmtHospital->close();
                 <!-- Confirm Transplant Form (AJAX) -->
                 <form method="post" action="" id="confirmTransplantForm" style="margin-top:20px;">
         <input type="hidden" name="match_id" value="<?php echo $match_record['id']; ?>">
-        <input type="hidden" name="hospital_id" value="<?php echo htmlspecialchars($hospital_id); ?>">
+        <input type="hidden" name="hospital_id"
+       value="<?= htmlspecialchars($hospital_id ?? '') ?>">
         <input type="hidden" name="status" value="completed">
         <button type="submit" name="confirm_transplant" class="match-button" style="width: auto; padding: 0 20px;">Confirm Transplant</button>
       </form>
