@@ -96,20 +96,20 @@ session_start();
     }
     
     /* Snackbar CSS - Adding here to ensure it works */
-    .snackbar {
-      visibility: hidden;
-      min-width: 250px;
-      margin-left: -125px;
-      background-color: #333;
-      color: #fff;
-      text-align: center;
-      border-radius: 4px;
-      padding: 16px;
-      position: fixed;
-      z-index: 1;
-      left: 50%;
-      bottom: 30px;
-    }
+   .snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 30px; /* Position from the right */
+    top: 30px;   /* Position from the top */
+    font-size: 17px;
+}
     
     .snackbar.show {
       visibility: visible;
@@ -128,15 +128,26 @@ session_start();
       background-color: #f57c00;
     }
     
-    @keyframes fadein {
-      from {bottom: 0; opacity: 0;}
-      to {bottom: 30px; opacity: 1;}
-    }
-    
-    @keyframes fadeout {
-      from {bottom: 30px; opacity: 1;}
-      to {bottom: 0; opacity: 0;}
-    }
+    @-webkit-keyframes fadein {
+    from {top: 0; opacity: 0;} 
+    to {top: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {top: 0; opacity: 0;}
+    to {top: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {top: 30px; opacity: 1;} 
+    to {top: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {top: 30px; opacity: 1;}
+    to {top: 0; opacity: 0;}
+}
+
   </style>
 </head>
 <body onload="initializePage()">
