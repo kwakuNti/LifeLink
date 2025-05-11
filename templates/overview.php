@@ -1357,9 +1357,7 @@ p {
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="blockchain-buttons">
-                    <a href="../blockchain/view_blockchain.php?donor_id=<?php echo $donor_id; ?>" class="blockchain-view-btn">View Complete Profile</a>
-                </div>
+
             </div>
         </div>
         

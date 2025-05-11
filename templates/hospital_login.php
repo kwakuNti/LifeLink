@@ -198,6 +198,68 @@ session_start();
       return true;
     }
   </script>
+  <style>
+/* Fallback if snackbar.css is missing */
+#snackbar{
+  position:fixed;left:30px;top:30px;z-index:9999;
+  min-width:250px;padding:16px;border-radius:6px;
+  background:#111;color:#fff;font-size:16px;
+  visibility:hidden;opacity:0;transition:opacity .3s;
+}
+#snackbar.show{visibility:visible;opacity:1}
+#snackbar.success{background:#10b981}
+#snackbar.error  {background:#ef4444}
+#snackbar.warning{background:#f59e0b}
+</style>
+</head>
+<body onload="initializePage()">
+…
+<div id="snackbar"></div>
+
+<script>
+/* ---------- Snackbar utility ---------- */
+function showSnackbar(msg,type='info'){
+  const bar=document.getElementById('snackbar');
+  bar.textContent=msg;
+
+  // purge previous state
+  bar.classList.remove('success','error','warning','info','show');
+  // add new state
+  bar.classList.add(type,'show');
+
+  // auto-hide after 3 s
+  clearTimeout(bar._timer);
+  bar._timer=setTimeout(()=>bar.classList.remove('show'),3000);
+}
+
+/* ---------- Page init ---------- */
+function initializePage(){
+  const urlParams=new URLSearchParams(window.location.search);
+  let hid=urlParams.get('hospital_id')||localStorage.getItem('hospital_id');
+
+  if(hid) localStorage.setItem('hospital_id',hid);
+  document.getElementById('hospital_id').value=hid||'';
+
+  if(hid && hospitalData[hid]){
+     const h=hospitalData[hid];
+     document.body.style.backgroundColor=h.themeColor;
+     document.getElementById('formTitle').textContent='Welcome to '+h.name;
+  }else{
+     showSnackbar('Invalid hospital selection','error');
+  }
+}
+
+/* ---------- Form validation ---------- */
+function validateHospitalLogin(){
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  if(!u||!p){
+     showSnackbar('Please enter username and password','error');
+     return false;
+  }
+  return true;
+}
+</script>
   <script type="text/javascript" src="../public/js/login.js"></script>
 </body>
 </html>
