@@ -111,7 +111,7 @@ function generatePatientCode($recipient_id) {
 
 // Add this function near the top of your file, after the other database queries
 // Function to get blockchain data for this donor
-function getBlockchainData($donorId) {
+function getBlockchainData($key) {
     $scriptPath = "../blockchain/query-chaincode.sh";
     
     if (!file_exists($scriptPath)) {
@@ -123,7 +123,7 @@ function getBlockchainData($donorId) {
     }
     
     // Query for donor data on blockchain
-    $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($donorId);
+    $cmd = escapeshellcmd($scriptPath) . " " . escapeshellarg($key);
     $output = [];
     $return_var = 0;
     exec($cmd . " 2>&1", $output, $return_var);
@@ -150,7 +150,7 @@ function getBlockchainData($donorId) {
 
 
 // Get blockchain data for this donor
-$blockchainData = getBlockchainData($donor_id);
+$blockchainData = getBlockchainData($user_id);
 
 // Also get match data from blockchain if available
 // Replace the current matchesBlockchainData retrieval code with this:
