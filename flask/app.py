@@ -20,47 +20,35 @@ MODEL_DIR_LIVER = os.path.join(BASE_DIR, '..', 'models', 'liver')
 ###############################################
 # LOAD MODELS & SCALERS FOR KIDNEY
 ###############################################
-try:
-    kidney_model = joblib.load(os.path.join(MODEL_DIR_KIDNEY, 'best_model_pipeline.pkl'))
-    kidney_scaler = joblib.load(os.path.join(MODEL_DIR_KIDNEY, 'scaler_candidate_features.pkl'))
-    kidney_kmeans = joblib.load(os.path.join(MODEL_DIR_KIDNEY, 'kmeans_model.pkl'))
-    if hasattr(kidney_scaler, 'feature_names_in_'):
-        candidate_feature_names = list(kidney_scaler.feature_names_in_)
-        print("Candidate feature names from kidney scaler:", candidate_feature_names)
-    else:
-        candidate_feature_names = [
-            'GFR', 'ON_DIALYSIS', 'INIT_AGE', 'BMI_TCR', 'DAYSWAIT_ALLOC',
-            'ABO_A', 'ABO_B', 'ABO_AB', 'ABO_O'
-        ]
-except Exception as e:
-    print(f"Error loading kidney models: {e}")
-    kidney_model = None
-    kidney_scaler = None
-    kidney_kmeans = None
 
-###############################################
-# LOAD MODELS & SCALERS FOR LIVER
-###############################################
-try:
-    liver_model = joblib.load(os.path.join(MODEL_DIR_LIVER, 'best_liver_model_pipeline.pkl'))
-    # Load the correct scaler object (ensure this file contains a scaler with a transform method)
-    liver_scaler = joblib.load(os.path.join(MODEL_DIR_LIVER, 'scaler_liver_candidate_features.pkl'))
-    liver_kmeans = joblib.load(os.path.join(MODEL_DIR_LIVER, 'liver_kmeans_model.pkl'))
-    # We assume the liver scaler uses a similar candidate_feature_names as the kidney scaler.
-except Exception as e:
-    print(f"Error loading liver models: {e}")
-    liver_model = None
-    liver_scaler = None
-    liver_kmeans = None
+def safe_load(path):
+    try:
+        return joblib.load(path)
+    except Exception as e:
+        print(f"Could not load {path}: {e}")
+        return None
 
-# Define separate outcome feature sets for each organ
+kidney_model  = safe_load(os.path.join(MODEL_DIR_KIDNEY, 'best_model_pipeline.pkl'))
+kidney_scaler = safe_load(os.path.join(MODEL_DIR_KIDNEY, 'scaler_candidate_features.pkl'))
+kidney_kmeans = safe_load(os.path.join(MODEL_DIR_KIDNEY, 'kmeans_model.pkl'))
+
+liver_model   = safe_load(os.path.join(MODEL_DIR_LIVER,  'best_liver_model_pipeline.pkl'))
+liver_scaler  = safe_load(os.path.join(MODEL_DIR_LIVER,  'scaler_liver_candidate_features.pkl'))
+liver_kmeans  = safe_load(os.path.join(MODEL_DIR_LIVER,  'liver_kmeans_model.pkl'))
+
+candidate_feature_names = (
+    list(kidney_scaler.feature_names_in_)
+    if hasattr(kidney_scaler, 'feature_names_in_') else
+    ['GFR','ON_DIALYSIS','INIT_AGE','BMI_TCR','DAYSWAIT_ALLOC','ABO_A','ABO_B','ABO_AB','ABO_O']
+)
+
 kidney_outcome_features = [
-    'INIT_AGE', 'BMI_TCR', 'Kidney_Cluster', 'WGT_KG_TCR', 
-    'HGT_CM_TCR', 'DGN_TCR', 'AGE_BMI_Interaction', 'Log_DAYSWAIT_ALLOC'
+    'INIT_AGE','BMI_TCR','Kidney_Cluster','WGT_KG_TCR','HGT_CM_TCR','DGN_TCR',
+    'AGE_BMI_Interaction','Log_DAYSWAIT_ALLOC'
 ]
-liver_outcome_features = [
-    'INIT_AGE', 'BMI_TCR', 'Liver_Cluster', 'WGT_KG_TCR', 
-    'HGT_CM_TCR', 'AGE_BMI_Interaction', 'Log_DAYSWAIT_CHRON'
+liver_outcome_features  = [
+    'INIT_AGE','BMI_TCR','Liver_Cluster','WGT_KG_TCR','HGT_CM_TCR',
+    'AGE_BMI_Interaction','Log_DAYSWAIT_CHRON'
 ]
 
 ###############################################
@@ -527,50 +515,62 @@ def api_confirm_match():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# =====  UPDATED ENDPOINT  =====
 @app.route('/api/confirm_transplant', methods=['POST'])
 def api_confirm_transplant():
     """
-    Confirm a transplant for a given match.
-    Expected JSON input:
-      { "match_id": 789, "status": "completed", "hospital_id": 4, "performed_at": "2025-04-08 12:30:00" }
-    If performed_at is not provided, current time is used.
+    Confirm (or schedule) a transplant for a given match.
+    Expected JSON: { "match_id": 789, "status": "completed" }
+    `performed_at` may be supplied; hospital_id is looked-up.
     """
     try:
-        data = request.json
-        match_id = data.get('match_id')
-        status = data.get('status')
-        hospital_id = data.get('hospital_id')
-        performed_at = data.get('performed_at')  # optional; if not provided, use NOW()
-        if not match_id or not status or not hospital_id:
-            return jsonify({'error': 'Missing match_id, status, or hospital_id parameter'}), 400
-        
-        connection = connect_to_database()
-        if not connection:
+        data        = request.json
+        match_id    = data.get('match_id')
+        status      = data.get('status', 'scheduled')
+        performed_at= data.get('performed_at')      # optional
+
+        if not match_id or not status:
+            return jsonify({'error': 'Missing match_id or status'}), 400
+
+        conn = connect_to_database()
+        if not conn:
             return jsonify({'error': 'Database connection error'}), 500
-        cursor = connection.cursor()
+        cur = conn.cursor()
+
+        # 1️⃣  fetch the hospital that registered this recipient
+        cur.execute("""
+            SELECT r.hospital_id
+            FROM matches   m
+            JOIN recipients r ON r.id = m.recipient_id
+            WHERE m.id = %s
+        """, (match_id,))
+        row = cur.fetchone()
+        hospital_id = row[0] if row else None
+        if hospital_id is None:
+            return jsonify({'error': 'No hospital registered for this recipient'}), 400
+
+        # 2️⃣  insert transplant record
         if performed_at:
-            query = """
-                INSERT INTO transplants (match_id, hospital_id, status, performed_at, created_at)
-                VALUES (%s, %s, %s, %s, NOW())
-            """
-            cursor.execute(query, (match_id, hospital_id, status, performed_at))
+            cur.execute("""
+                INSERT INTO transplants (match_id,hospital_id,status,performed_at,created_at)
+                VALUES (%s,%s,%s,%s,NOW())
+            """, (match_id, hospital_id, status, performed_at))
         else:
-            query = """
-                INSERT INTO transplants (match_id, hospital_id, status, performed_at, created_at)
-                VALUES (%s, %s, %s, NOW(), NOW())
-            """
-            cursor.execute(query, (match_id, hospital_id, status))
-        connection.commit()
-        transplant_id = cursor.lastrowid
+            cur.execute("""
+                INSERT INTO transplants (match_id,hospital_id,status,performed_at,created_at)
+                VALUES (%s,%s,%s,NOW(),NOW())
+            """, (match_id, hospital_id, status))
+        conn.commit()
+        transplant_id = cur.lastrowid
 
-        # Optionally update the match status to "transplanted"
-        update_query = "UPDATE matches SET status = 'transplanted' WHERE id = %s"
-        cursor.execute(update_query, (match_id,))
-        connection.commit()
+        # 3️⃣  set match to transplanted
+        cur.execute("UPDATE matches SET status='transplanted' WHERE id=%s", (match_id,))
+        conn.commit()
 
-        cursor.close()
-        connection.close()
-        return jsonify({'message': 'Transplant confirmed', 'transplant_id': transplant_id})
+        cur.close()
+        conn.close()
+        return jsonify({'message':'Transplant confirmed','transplant_id':transplant_id})
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     

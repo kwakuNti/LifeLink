@@ -1033,13 +1033,16 @@ $stmtHospital->close();
                 <div class="transplant-confirmed" style="margin-top:20px;">Transplant Confirmed (ID: <?php echo htmlspecialchars($transplant_record['id']); ?>)</div>
               <?php else: ?>
                 <!-- Confirm Transplant Form (AJAX) -->
-                <form method="post" action="" id="confirmTransplantForm" style="margin-top:20px;">
-        <input type="hidden" name="match_id" value="<?php echo $match_record['id']; ?>">
-        <input type="hidden" name="hospital_id"
-       value="<?= htmlspecialchars($hospital_id ?? '') ?>">
-        <input type="hidden" name="status" value="completed">
-        <button type="submit" name="confirm_transplant" class="match-button" style="width: auto; padding: 0 20px;">Confirm Transplant</button>
-      </form>
+                <form id="confirmTransplantForm" style="margin-top:20px;">
+    <input type="hidden" name="match_id" value="<?php echo $match_record['id']; ?>">
+    <input type="hidden" name="status"   value="completed">
+    <button type="submit"
+            class="match-button"
+            style="width:auto;padding:0 20px;">
+      Confirm Transplant
+    </button>
+</form>
+
               <?php endif; ?>
             <?php else: ?>
               <div class="matched-label" style="margin-top:20px;">Please confirm a match first.</div>
@@ -1327,57 +1330,51 @@ Swal.fire({
           });
       });
 
-      // Attach AJAX event listener for Confirm Transplant form
       const confirmTransplantForm = document.getElementById("confirmTransplantForm");
       if (confirmTransplantForm) {
-          confirmTransplantForm.addEventListener("submit", function(e) {
-              e.preventDefault();
-              const formData = new FormData(confirmTransplantForm);
-              const data = {};
-              formData.forEach((value, key) => {
-                  data[key] = value;
-              });
-              
-              // Check if match_id exists
-              if (!data.match_id) {
-                  showSnackbar("Error: Missing match ID. Please confirm a match first.", "error");
-                  return;
-              }
-              
-              const submitButton = confirmTransplantForm.querySelector('button[type="submit"]');
-              const originalButtonText = submitButton.innerHTML;
-              submitButton.disabled = true;
-              submitButton.innerHTML = 'Processing...';
-              
-              // Add hospital_id and status if not already in the form data
-              data.hospital_id = <?php echo json_encode(isset($_SESSION['hospital_id']) ? $_SESSION['hospital_id'] : null); ?>;
-              data.status = "completed";
-              
-              fetch("/api/confirm_transplant", {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify(data)
-              })
-              .then(response => response.json())
-              .then(result => {
-                  if (result.transplant_id) {
-                      showSnackbar("Transplant confirmed successfully! ID: " + result.transplant_id, "success");
-                      confirmTransplantForm.innerHTML = `<div class="match-button" style="background-color: var(--success);">Transplant confirmed (ID: ${result.transplant_id})</div>`;
-                  } else if (result.error) {
-                      showSnackbar("Error: " + result.error, "error");
-                      submitButton.disabled = false;
-                      submitButton.innerHTML = originalButtonText;
-                  }
-              })
-              .catch(err => {
-                  console.error("Error:", err);
-                  showSnackbar("An error occurred while confirming the transplant.", "error");
-                  submitButton.disabled = false;
-                  submitButton.innerHTML = originalButtonText;
-              });
+        confirmTransplantForm.addEventListener("submit", e => {
+          e.preventDefault();
+          const data = {
+            match_id: confirmTransplantForm.match_id.value,
+            status:   confirmTransplantForm.status.value
+          };
+
+          if (!data.match_id) {
+            showSnackbar("Error: Missing match ID. Please confirm a match first.", "error");
+            return;
+          }
+
+          const btn = confirmTransplantForm.querySelector("button");
+          const original = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = "Processing...";
+
+          fetch("/api/confirm_transplant", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify(data)
+          })
+          .then(r => r.json())
+          .then(res => {
+            if (res.transplant_id) {
+              showSnackbar("Transplant confirmed! ID: " + res.transplant_id, "success");
+              confirmTransplantForm.innerHTML = 
+                `<div class="match-button" style="background-color: var(--success);">
+                  Transplant confirmed (ID: ${res.transplant_id})
+                </div>`;
+            } else {
+              showSnackbar("Error: " + (res.error||"unknown"), "error");
+              btn.disabled = false;
+              btn.innerHTML = original;
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            showSnackbar("Error confirming transplant", "error");
+            btn.disabled = false;
+            btn.innerHTML = original;
           });
+        });
       }
     });
 
