@@ -1269,7 +1269,7 @@ p {
                 </div>
                 
                 <div class="match-compatibility">
-                <?php echo number_format($match['match_score'], 1); ?>% Match
+                <?php echo number_format($transplant['match_score'], 1); ?>% Match
                 </div>
                 
                 <div class="match-details">
