@@ -7,20 +7,6 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../config/connection.php';
 
-// 3) Check for existing donor info
-$userId = (int) $_SESSION['user_id'];
-$stmt   = $conn->prepare("SELECT id FROM donors WHERE user_id = ?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$stmt->store_result();
-
-// 4) If we found a row, send straight to the match page
-if ($stmt->num_rows > 0) {
-    $stmt->close();
-    header("Location: ../templates/match-page.php");
-    exit();
-}
-$stmt->close();
 
 ?>
 <!DOCTYPE html>
