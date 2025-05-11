@@ -1,247 +1,329 @@
-/* -----------------------------------------------------------
- *  map.js  –  region ⇢ city ⇢ nearest-hospital selector
- *             now with IP-based geolocation fallback
- * ----------------------------------------------------------- */
-
 document.addEventListener("DOMContentLoaded", () => {
-
-  /* ---------- helpers, globals ---------- */
-
-  // quick IP geolocator (± 10-40 km accuracy, good enough for a nearby search)
-  async function getApproxLocationFromIP () {
-    try {
-      const r = await fetch("https://ipapi.co/json/");
-      if (!r.ok) return null;
-      const { latitude, longitude } = await r.json();
-      return { lat: parseFloat(latitude), lng: parseFloat(longitude) };
-    } catch { return null; }
-  }
-
-  // simple snackbar
-  function showSnackbar (msg, type = "") {
-    const el = document.getElementById("snackbar");
-    el.textContent = msg;
-    el.className = `show ${type}`.trim();
-    setTimeout(() => (el.className = el.className.replace("show", "")), 3_000);
-  }
-
-  /* ---------- DOM refs ---------- */
-
-  const regions              = document.querySelectorAll("svg path[name]");
-  const selectedRegionLabel  = document.getElementById("selected-region");
-  const citySelect           = document.getElementById("city-select");
-  const findBtn              = document.getElementById("find-hospitals");
-  const saveBtn              = document.getElementById("save-info-button");
-  const hospitalResults      = document.getElementById("hospital-results");
-
-  /* ---------- working state ---------- */
-
-  let selectedRegion   = "";
-  let latestUserLat    = null;
-  let latestUserLng    = null;
-  let selectedHospital = null;
-  let geoAttempts      = 0;
-  const MAX_GEO_ATTEMPTS = 3;
-
-  /* ---------- map hover/select UI ---------- */
-
-  // tooltip
-  const tooltip = document.createElement("div");
-  tooltip.classList.add("tooltip");
-  document.body.appendChild(tooltip);
-
-  regions.forEach(region => {
-    const name = region.getAttribute("name");
-    if (!name) return;
-
-    region.addEventListener("mouseenter", e => {
-      region.style.fill = "#1e3a8a";
-      tooltip.textContent = name;
-      tooltip.style.display = "block";
-      tooltip.style.left = `${e.pageX}px`;
-      tooltip.style.top  = `${e.pageY - 30}px`;
-    });
-
-    region.addEventListener("mouseleave", () => {
-      if (!region.classList.contains("selected")) region.style.fill = "#cccccc";
-      tooltip.style.display = "none";
-    });
-
-    region.addEventListener("click", e => {
-      e.stopPropagation();
-      regions.forEach(r => r.classList.remove("selected"));
-      region.classList.add("selected");
-      selectedRegion = name;
-      selectedRegionLabel.textContent = name;
-      findBtn.disabled = false;
-      showSnackbar(`Region “${name}” selected. Choose a city.`, "success");
-
-      // load cities
-      fetch(`../includes/get-cities.php?region=${encodeURIComponent(name)}`)
-        .then(r => r.json())
-        .then(cities => {
-          citySelect.innerHTML = `<option value="">Choose a city...</option>`;
-          cities.forEach(c => {
-            citySelect.insertAdjacentHTML("beforeend",
-              `<option value="${c}">${c}</option>`);
+    const regions = document.querySelectorAll("path"); // Select all path elements inside SVG
+    const selectedRegionElement = document.getElementById("selected-region");
+    const findHospitalsButton = document.getElementById("find-hospitals");
+    const saveInfoButton = document.getElementById("save-info-button");
+    const citySelect = document.getElementById("city-select");
+    const manualLocation = document.getElementById("manual-location");
+    const hospitalResults = document.getElementById("hospital-results");
+  
+    let selectedRegion = "";
+    // We'll store the latest user latitude and longitude after a successful hospital fetch.
+    let latestUserLat = null;
+    let latestUserLng = null;
+    // Add a variable to store the selected hospital ID
+    let selectedHospitalId = null;
+  
+    // Custom snackbar function
+    function showSnackbar(message, type) {
+      const snackbar = document.getElementById("snackbar");
+      snackbar.innerHTML = message;
+      snackbar.className = "show " + type;
+      setTimeout(() => {
+        snackbar.className = snackbar.className.replace("show", "");
+      }, 3000);
+    }
+  
+    // Tooltip for region hovering
+    let tooltip = document.createElement("div");
+    tooltip.classList.add("tooltip");
+    document.body.appendChild(tooltip);
+  
+    // Make each region clickable with hover effects
+    regions.forEach(region => {
+      const regionName = region.getAttribute("name");
+      if (!regionName) return;
+  
+      region.addEventListener("mouseenter", function (event) {
+        this.style.fill = "#1e3a8a"; // Highlight color
+        tooltip.style.display = "block";
+        tooltip.innerText = regionName;
+        tooltip.style.left = event.pageX + "px";
+        tooltip.style.top = (event.pageY - 30) + "px";
+      });
+  
+      region.addEventListener("mouseleave", function () {
+        if (!this.classList.contains("selected")) {
+          this.style.fill = "#cccccc"; // Reset color
+        }
+        tooltip.style.display = "none";
+      });
+  
+      region.addEventListener("click", function (event) {
+        event.stopPropagation();
+        // Remove previous selection
+        regions.forEach(r => r.classList.remove("selected"));
+        // Highlight chosen region
+        this.classList.add("selected");
+        selectedRegion = regionName;
+        selectedRegionElement.innerText = selectedRegion;
+        findHospitalsButton.disabled = false;
+        showSnackbar(`Region "${regionName}" selected! Now pick a city.`, "success");
+  
+        // Fetch cities dynamically from DB
+        fetch(`../includes/get-cities.php?region=${selectedRegion}`)
+          .then(response => response.json())
+          .then(cities => {
+            citySelect.innerHTML = `<option value="">Choose a city...</option>`;
+            if (cities.length === 0) {
+              showSnackbar("No cities with Transplant hospitals found in this region. Try other regions", "error");
+            }
+            cities.forEach(city => {
+              let option = document.createElement("option");
+              option.value = city;
+              option.innerText = city;
+              citySelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error("Error fetching cities:", error);
+            showSnackbar("Could not load cities. Check console.", "error");
           });
+      });
+  
+      region.style.pointerEvents = "all";
+    });
+  
+    // On "Find Nearest Hospitals" button click
+    findHospitalsButton.addEventListener("click", () => {
+      const selectedCity = citySelect.value;
+    
+      if (!selectedRegion) {
+        showSnackbar("Please select a region first.", "error");
+        return;
+      }
+    
+      if (!selectedCity) {
+        showSnackbar("Please select a city.", "error");
+        return;
+      }
+    
+      if (!navigator.geolocation) {
+        showSnackbar("Geolocation not supported by this browser.", "error");
+        return;
+      }
+    
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+    
+          latestUserLat = lat;
+          latestUserLng = lng;
+    
+          // Fetch hospitals using real-time user location
+          const queryParams = `region=${selectedRegion}&city=${selectedCity}&lat=${lat}&lng=${lng}`;
+    
+          fetch(`../includes/get-hospitals.php?${queryParams}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.error) {
+                showSnackbar(data.error, "error");
+              } else if (data.hospitals && Array.isArray(data.hospitals)) {
+                displayHospitals(data.hospitals);
+              } else if (Array.isArray(data)) {
+                displayHospitals(data);
+              } else {
+                showSnackbar("Unexpected response from server.", "error");
+              }
+            })
+            .catch(error => {
+              console.error("Error fetching hospitals:", error);
+              showSnackbar("Error fetching hospitals. Check console.", "error");
+            });
+        },
+        error => {
+          // If the user denies location access, show SweetAlert2 modal
+          if (error.code === error.PERMISSION_DENIED) {
+            Swal.fire({
+              title: "Location Permission Required",
+              text: "To find the nearest hospitals, we need access to your location. Please allow it in your browser settings.",
+              icon: "warning",
+              confirmButtonText: "Retry",
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // Try again
+                window.location.reload(); // Will prompt again if user changed settings
+              }
+            });
+          } else {
+            showSnackbar("Location access denied or unavailable.", "error");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+    
+  
+    // Save user search information when the "Save Information" button is clicked
+    saveInfoButton.addEventListener("click", () => {
+      // Validate that we have latest coordinates and a selected hospital
+      if (latestUserLat === null || latestUserLng === null) {
+        showSnackbar("User location not available. Please search again.", "error");
+        return;
+      }
+  
+      if (selectedHospitalId === null) {
+        showSnackbar("Please select a hospital first by clicking 'Confirm Selection'", "warning");
+        // Scroll to the hospital results to make it clear
+        hospitalResults.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+  
+      const formData = new FormData();
+      formData.append('region', selectedRegion);
+      formData.append('city', citySelect.value);
+      formData.append('latitude', latestUserLat);
+      formData.append('longitude', latestUserLng);
+      formData.append('selected_hospital', selectedHospitalId);
+  
+      fetch('../actions/update-user-history.php', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            showSnackbar("User location and selected hospital saved!", "success");
+            // Redirect to match page after success
+            setTimeout(() => {
+              window.location.href = '../templates/match-page';
+            }, 1500);
+          } else {
+            showSnackbar(result.error, "error");
+          }
         })
-        .catch(err => {
-          console.error(err);
-          showSnackbar("Couldn’t load cities.", "error");
+        .catch(error => {
+          console.error("Error updating user history:", error);
+          showSnackbar("Error updating user history.", "error");
         });
     });
-  });
-
-  /* ---------- geolocation flow ---------- */
-
-  function handleGeoError (err) {
-    console.warn("Geolocation error:", err);
-
-    // try one-off IP fallback on POSITION_UNAVAILABLE or TIMEOUT
-    if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
-      getApproxLocationFromIP().then(loc => {
-        if (loc) {
-          ({ lat: latestUserLat, lng: latestUserLng } = loc);
-          fetchHospitals(loc.lat, loc.lng);
-          showSnackbar("Used approximate location via IP.", "warning");
-          return;
-        }
-        escalate();
+  
+    // Function to handle hospital selection
+    window.confirmHospitalSelection = function(hospitalId) {
+      // Reset any previously selected hospitals
+      const allHospitalCards = document.querySelectorAll('.hospital-card');
+      allHospitalCards.forEach(card => {
+        card.classList.remove('selected-hospital');
       });
-    } else {
-      escalate();
-    }
-
-    function escalate () {
-      Swal.fire({
-        title: "Location Error",
-        text: "Unable to obtain precise location. Enter it manually?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Manual input"
-      }).then(res => {
-        if (res.isConfirmed) showManualLocationInput();
-      });
-    }
-  }
-
-  function getUserLocation () {
-    if (!navigator.geolocation) {
-      showSnackbar("Browser has no Geolocation.", "error");
-      showManualLocationInput();
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        latestUserLat = pos.coords.latitude;
-        latestUserLng = pos.coords.longitude;
-        geoAttempts = 0;
-        fetchHospitals(latestUserLat, latestUserLng);
-      },
-      err => {
-        if (++geoAttempts <= MAX_GEO_ATTEMPTS) {
-          return getUserLocation();          // retry
-        }
-        handleGeoError(err);
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 }
-    );
-  }
-
-  /* ---------- hospital search ---------- */
-
-  function fetchHospitals (lat, lng) {
-    const city = citySelect.value;
-    if (!selectedRegion || !city) {
-      showSnackbar("Select region & city first.", "error");
-      return;
-    }
-
-    showSnackbar("Searching hospitals…", "info");
-
-    fetch(`../includes/get-hospitals.php?region=${encodeURIComponent(selectedRegion)}&city=${encodeURIComponent(city)}&lat=${lat}&lng=${lng}`)
-      .then(r => r.json())
-      .then(hospitals => displayHospitals(Array.isArray(hospitals.hospitals) ? hospitals.hospitals : hospitals))
-      .catch(e => {
-        console.error(e);
-        showSnackbar("Server error fetching hospitals.", "error");
-      });
-  }
-
-  function displayHospitals (arr) {
-    if (!arr || !arr.length) {
-      hospitalResults.innerHTML = `<div class="empty-state"><span class="material-icons">sentiment_dissatisfied</span><p>No hospitals found.</p></div>`;
-      return;
-    }
-    hospitalResults.innerHTML = `<h3>Nearest Hospitals (${arr.length})</h3>`;
-    arr.forEach((h, i) => {
-      const id = h.id ?? i + 1;
-      hospitalResults.insertAdjacentHTML("beforeend", `
-        <div class="hospital-card" data-id="${id}">
-          <h4>${i + 1}. ${h.name}</h4>
-          <p>${h.region}, ${h.city}</p>
-          <p>Specialization: ${h.organ_specialty ?? "General Transplant"}</p>
-          <p>Distance: ${(h.distance ?? 0).toFixed(2)} km</p>
-          <div class="hospital-buttons">
-            <button class="btn directions-btn" onclick="openGoogleMaps(${h.latitude},${h.longitude})"><span class="material-icons">directions</span>Directions</button>
-            <button class="btn confirm-button" onclick="confirmHospitalSelection(${id})"><span class="material-icons">check_circle</span>Confirm</button>
+  
+      // Highlight the selected hospital card
+      const selectedCard = document.querySelector(`.hospital-card[data-id="${hospitalId}"]`);
+      if (selectedCard) {
+        selectedCard.classList.add('selected-hospital');
+      }
+  
+      // Store the selected hospital ID
+      selectedHospitalId = hospitalId;
+      
+      // Enable the save button
+      saveInfoButton.disabled = false;
+      
+      // Show a notification and scroll to the save button
+      showSnackbar("Hospital selected! Now click 'Save Search Information' to proceed.", "success");
+      
+      // Scroll to the save button
+      saveInfoButton.scrollIntoView({ behavior: "smooth" });
+    };
+  
+    // Display hospital results in the left panel
+    function displayHospitals(hospitals) {
+      if (!hospitals || hospitals.length === 0) {
+        hospitalResults.innerHTML = "<h3>No Hospitals Found</h3>";
+        showSnackbar("No hospitals found for that location.", "error");
+        return;
+      }
+  
+      hospitalResults.innerHTML = "<h3>Nearest Hospitals</h3>";
+      hospitals.forEach((hospital, index) => {
+        // Make sure each hospital has an ID
+        const hospitalId = hospital.id || (index + 1);
+        
+        hospitalResults.innerHTML += `
+          <div class="hospital-card" data-id="${hospitalId}">
+            <h4>${index + 1}. ${hospital.name}</h4>
+            <p>${hospital.region}, ${hospital.city}</p>
+            <p>Specialization: ${hospital.organ_specialty}</p>
+            <p>Distance from current location: ${hospital.distance?.toFixed(2) ?? 'N/A'} km</p>
+            <div class="hospital-buttons">
+              <button onclick="openGoogleMaps(${hospital.latitude}, ${hospital.longitude})">Get Directions</button>
+              <button class="confirm-button" onclick="confirmHospitalSelection(${hospitalId})">Confirm Selection</button>
+            </div>
           </div>
-        </div>`);
-    });
-    hospitalResults.scrollIntoView({ behavior: "smooth" });
-  }
-
-  /* ---------- UI actions ---------- */
-
-  findBtn.addEventListener("click", getUserLocation);
-
-  window.openGoogleMaps = (lat,lng) => {
-    const base = "https://www.google.com/maps/dir/";
-    const url  = latestUserLat ? `${base}${latestUserLat},${latestUserLng}/${lat},${lng}` :
-                                 `${base}?api=1&destination=${lat},${lng}`;
-    window.open(url, "_blank");
-  };
-
-  window.confirmHospitalSelection = id => {
-    document.querySelectorAll(".hospital-card").forEach(c => c.classList.remove("selected-hospital"));
-    const card = document.querySelector(`.hospital-card[data-id="${id}"]`);
-    if (card) card.classList.add("selected-hospital");
-    selectedHospital = id;
-    saveBtn.disabled = false;
-    showSnackbar("Hospital selected → Save Selection & Continue", "success");
-  };
-
-  /* ---------- manual-location helper ---------- */
-
-  function showManualLocationInput () {
-    Swal.fire({
-      title: "Enter Your Location",
-      html: `
-        <input id="mlat" class="swal2-input" placeholder="Latitude" type="number" step="0.0001">
-        <input id="mlng" class="swal2-input" placeholder="Longitude" type="number" step="0.0001">
-      `,
-      preConfirm: () => {
-        const lat = parseFloat(document.getElementById("mlat").value);
-        const lng = parseFloat(document.getElementById("mlng").value);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-        Swal.showValidationMessage("Please enter valid coordinates.");
-        return false;
-      }
-    }).then(res => {
-      if (res.isConfirmed) {
-        latestUserLat = res.value.lat;
-        latestUserLng = res.value.lng;
-        fetchHospitals(latestUserLat, latestUserLng);
-      }
-    });
-  }
-
-  /* ---------- run once on load ---------- */
-
-  navigator.permissions?.query({ name: "geolocation" })
-    .then(p => { if (p.state === "denied") showSnackbar("Enable location for better results.", "warning"); })
-    .catch(()=>{});
-
-});
+        `;
+      });
+  
+      showSnackbar("Hospitals loaded successfully! Please select one by clicking 'Confirm Selection'", "success");
+      hospitalResults.scrollIntoView({ behavior: "smooth" });
+    }
+  
+    // Open Google Maps for directions
+    window.openGoogleMaps = function(lat, lng) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, "_blank");
+    };
+  
+    // Step-by-step tutorial using SweetAlert2
+    function startTutorial() {
+      Swal.fire({
+        title: 'Tutorial: How to Use the Map',
+        text: 'Transplant Hospitals are only in a few regions, Click next to continue',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          stepOne();
+        }
+      });
+    }
+  
+    function stepOne() {
+      Swal.fire({
+        title: 'Step 1: Pick a Region',
+        text: 'Click on one of the regions on the map to select it. Your Geometry must be good😉',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then(() => {
+        stepTwo();
+      });
+    }
+  
+    function stepTwo() {
+      Swal.fire({
+        title: 'Step 2: Select a City',
+        text: 'If available, choose a city from the dropdown. If none appear, try another region.',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then(() => {
+        stepThree();
+      });
+    }
+  
+    function stepThree() {
+      Swal.fire({
+        title: 'Step 3: Find Hospitals',
+        text: 'Click the "Find Nearest Hospitals" button to see a list of matches.',
+        icon: 'info',
+        confirmButtonText: 'Next',
+      }).then(() => {
+        stepFour();
+      });
+    }
+  
+    function stepFour() {
+      Swal.fire({
+        title: 'Step 4: Confirm Hospital Selection',
+        text: 'After finding hospitals, click "Save Selection" to save your choice.',
+        icon: 'info',
+        confirmButtonText: 'Got It!',
+      });
+    }
+  
+    // Call the tutorial on page load
+    startTutorial();
+  });
