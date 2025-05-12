@@ -364,6 +364,48 @@ def find_matches(donor_data, recipients_data, n_matches=5):
         print(f"Error in finding matches: {e}")
         return []
 
+
+# --- after your existing find_matches(...) function ---
+
+def find_matches_two_stage(donor_data, recipients_data, n_matches=5, α=0.6):
+    """
+    Two‐stage matching:
+      1) Get top 3×n_matches by similarity.
+      2) Predict transplant success for each and combine scores.
+    α = weight on success_probability (rest on compatibility_score).
+    """
+    # Stage 1: broad similarity filter
+    first_stage = find_matches(donor_data, recipients_data, n_matches=n_matches * 3)
+
+    # Stage 2: predict and re‐rank
+    for m in first_stage:
+        # prepare prediction input
+        input_dict = format_data_for_prediction(donor_data, m['data'])
+        organ_type = donor_data.get('ORGAN_TYPE', 'Kidney')
+
+        if organ_type == 'Kidney':
+            feats, model = kidney_outcome_features, kidney_model
+        else:
+            feats, model = liver_outcome_features, liver_model
+
+        df_in = pd.DataFrame([input_dict])
+        # ensure all outcome features exist
+        for col in feats:
+            if col not in df_in:
+                df_in[col] = 0.0
+        df_in = df_in[feats]
+
+        # predict probability
+        prob = model.predict_proba(df_in)[0][1] * 100
+        m['success_probability'] = float(prob)
+
+        # combined score
+        m['combined_score'] = α * m['success_probability'] + (1 - α) * m['compatibility_score']
+
+    # sort and return top n_matches
+    first_stage.sort(key=lambda x: x['combined_score'], reverse=True)
+    return first_stage[:n_matches]
+
 def is_blood_compatible(donor_type, recipient_type):
     """Check if donor blood type is compatible with recipient blood type."""
     compatibility = {
@@ -381,26 +423,26 @@ def is_blood_compatible(donor_type, recipient_type):
 @app.route('/api/find_matches', methods=['POST'])
 def api_find_matches():
     """
-    Find compatible recipient matches for a given donor.
-    Expected JSON input:
-      { "donor_id": 123 }
+    Find compatible recipient matches for a given donor using two‐stage matching.
+    Expected JSON input: { "donor_id": 123 }
     """
-    try:
-        data = request.json
-        donor_id = data.get('donor_id')
-        if not donor_id:
-            return jsonify({'error': 'Missing donor_id parameter'}), 400
-        donor_data = get_donor_data(donor_id)
-        if not donor_data:
-            return jsonify({'error': f'Donor with ID {donor_id} not found'}), 404
-        recipients_data = get_recipient_data()
-        if not recipients_data:
-            return jsonify({'error': 'No recipients found'}), 404
-        matches = find_matches(donor_data, recipients_data)
-        return jsonify({'matches': matches})
-    except Exception as e:
-        print(f"Error in api_find_matches: {e}")
-        return jsonify({'error': str(e)}), 500
+    data = request.json or {}
+    donor_id = data.get('donor_id')
+    if not donor_id:
+        return jsonify({'error': 'Missing donor_id parameter'}), 400
+
+    donor = get_donor_data(donor_id)
+    if not donor:
+        return jsonify({'error': f'Donor with ID {donor_id} not found'}), 404
+
+    recipients = get_recipient_data()
+    if not recipients:
+        return jsonify({'error': 'No recipients found'}), 404
+
+    # use two‐stage matching now
+    matches = find_matches_two_stage(donor, recipients, n_matches=5)
+
+    return jsonify({'matches': matches})
 
 @app.route('/api/predict_success', methods=['POST'])
 def api_predict_success():
