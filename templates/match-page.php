@@ -936,16 +936,21 @@ to {top: 0; opacity: 0;}
           <div class="matching-container" id="matchingContainer">
             <?php foreach ($matches as $match): ?>
               <div class="match-card">
-                <?php 
-$pCode = $match['patient_code'] ?? 'Patient #' . $match['id'];
-                ?>
-                <div class="match-avatar"><?php echo htmlspecialchars(substr($pCode, 0, 1)); ?></div>
-                <div class="name-display">
-                  <?php echo htmlspecialchars($pCode); ?>
-                </div>
-                <div class="compatibility-score">
-                  <?php echo number_format($match['compatibility_score'], 1); ?>% Match
-                </div>
+              <div class="match-avatar"><?php echo htmlspecialchars(substr($pCode,0,1)); ?></div>
+    <div class="name-display"><?php echo htmlspecialchars($pCode); ?></div>
+
+    <!-- Overall combined score -->
+    <div class="compatibility-score" style="background: rgba(83,168,52,0.1); color: #34a853;">
+      <?php echo number_format($match['combined_score'],1); ?>% Overall
+    </div>
+
+    <!-- (Optional) show sub-scores -->
+    <div class="compatibility-score" style="background: rgba(64,112,224,0.1); color: #4070E0;">
+      Success: <?php echo number_format($match['success_probability'],1); ?>%
+    </div>
+    <div class="compatibility-score">
+      Similarity: <?php echo number_format($match['compatibility_score'],1); ?>%
+    </div>
                 <?php if (isAlreadyMatched($donor['id'], $match['id'])): ?>
                   <div class="matched-label">Matched</div>
                 <?php else: ?>
